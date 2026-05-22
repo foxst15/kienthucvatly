@@ -940,24 +940,26 @@ const IMPROVE_TEMPLATES = {
 };
 
     function getLevelTagsData(level, entry) {
-        // 1. Xử lý riêng cho Level 0 theo cấu trúc ID (0, 1, 2...)
-        if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
-            return LEVEL_0_TAGS_DATA[entry.qIdx];
-        }
-
-        // 2. Xử lý cho Level 1, 2, 3 theo cấu trúc mã L(n)_Cxx
-        // Chuyển L1_Q1 thành L1_C01 để khớp với bảng dữ liệu của anh
-        const tagKey = entry.id.replace("Q", "C"); 
-        if (LEVEL_TAGS_DATA[tagKey]) {
-            return LEVEL_TAGS_DATA[tagKey];
-        }
-
-        // 3. Fallback: Nếu không tìm thấy Tag (trường hợp dự phòng)
-        return { 
-            name: entry.topic, 
-            explanation: "nội dung về " + entry.topic.toLowerCase() 
-        };
+    // 1. Xử lý riêng cho Level 0 theo cấu trúc ID (0, 1, 2...)
+    if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
+        return LEVEL_0_TAGS_DATA[entry.qIdx];
     }
+
+    // 2. Xử lý cho Level 1, 2, 3 theo cấu trúc mã L(n)_Cxx
+    // Sửa lỗi: Tách chuỗi và tự động thêm số 0 để "L3_Q1" chuyển thành "L3_C01" chuẩn chỉnh
+    const parts = entry.id.split('_Q');
+    const tagKey = parts[0] + '_C' + parts[1].padStart(2, '0');
+    
+    if (LEVEL_TAGS_DATA[tagKey]) {
+        return LEVEL_TAGS_DATA[tagKey];
+    }
+
+    // 3. Fallback: Nếu không tìm thấy Tag (trường hợp dự phòng)
+    return { 
+        name: entry.topic, 
+        explanation: "nội dung về " + entry.topic.toLowerCase() 
+    };
+}
 
         function generateStrengthFeedback(levelResults, level, correctCount, total) {    
         const feedbackHeader = "🌟 ";
