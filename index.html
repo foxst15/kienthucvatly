@@ -364,7 +364,12 @@
         } else if (q.type === 'dragdrop') {
             const shuffled = [...q.pairs.map(p => p[1])].sort(() => Math.random() - 0.5);
             area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-4">${q.question}</p>
-<div class="grid grid-cols-2 gap-4"><div class="space-y-3">${q.pairs.map((p,i) => `<div class="p-3 rounded-xl bg-orange-50 font-medium">${p[0]} <span class="drop-zone inline-block ml-2 min-w-[100px] border-2 border-dashed border-orange-300 rounded-lg px-3 py-1 text-center text-sm text-gray-400" data-idx="${i}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,${i})">kéo vào đây</span></div>`).join('')}</div>
+<div class="grid grid-cols-2 gap-4"><div class="space-y-3">${q.pairs.map((p,i) => `<div class="p-3 rounded-xl bg-orange-50 font-medium">${p[0]} <span class="drop-zone inline-block ml-2 min-w-[100px] border-2 border-dashed border-orange-300 rounded-lg px-3 py-1 text-center text-sm text-gray-400" 
+      data-idx="${i}" 
+      onclick="removeDrop(this)" 
+      ondragover="event.preventDefault();this.classList.add('drag-over')" 
+      ondragleave="this.classList.remove('drag-over')" 
+      ondrop="handleDrop(event,${i})">kéo vào đây</span>
             <div class="space-y-3" id="drag-items">${shuffled.map(s => `<div class="drag-item p-3 rounded-xl bg-orange-100 border-2 border-orange-300 font-medium text-center cursor-grab" draggable="true" ondragstart="event.dataTransfer.setData('text',this.textContent);this.classList.add('dragging')" ondragend="this.classList.remove('dragging')" style="background:#fed7aa">${s}</div>`).join('')}</div></div>
             <button onclick="checkDragDrop()" class="mt-4 px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>`;
             saveDragDropState();
@@ -432,6 +437,24 @@
         zone.classList.add('bg-orange-100');
         const items = document.getElementById('drag-items');
         [...items.children].forEach(c => { if(c.textContent === text) c.style.display = 'none'; });
+    }
+
+   function removeDrop(el) {
+        // Lấy lại text và bỏ vào lại ô chứa các thẻ ban đầu
+        const text = el.textContent;
+        const dragItemsContainer = document.getElementById('drag-items');
+        
+        // Tìm thẻ tương ứng trong danh sách gốc và hiện lại nó
+        const originalItems = dragItemsContainer.children;
+        for (let item of originalItems) {
+            if (item.textContent === text) {
+                item.style.display = 'block'; // Hiện lại thẻ
+            }
+        }
+        
+        // Xóa text khỏi ô đã thả
+        el.textContent = "kéo vào đây";
+        el.classList.remove('bg-orange-100');
     }
 
     function getHintDetail() {
@@ -739,6 +762,43 @@
         8: { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Lập quan hệ giữa động năng và thế năng theo tỉ lệ cho trước." },
         9: { name: "Bảo toàn cơ năng qua nhiều trạng thái", explanation: "So sánh cơ năng của vật ở nhiều trạng thái chuyển động khác nhau." }
     };
+   const LEVEL_TAGS_DATA = {
+    // Level 1
+    "L1_C01": { name: "Công thức động năng, thế năng và cơ năng", explanation: "Nhận biết đúng công thức tính động năng, thế năng trọng trường và cơ năng của vật." },
+    "L1_C02": { name: "Cơ năng là đại lượng vô hướng", explanation: "Nhận ra cơ năng là một dạng năng lượng nên là đại lượng vô hướng." },
+    "L1_C03": { name: "Bảo toàn cơ năng trong rơi tự do", explanation: "Nhận biết cơ năng được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí." },
+    "L1_C04": { name: "Chuyển hóa năng lượng khi con lắc đi xuống", explanation: "Nhận ra khi con lắc đi từ vị trí biên về vị trí thấp nhất, thế năng giảm dần và động năng tăng dần." },
+    "L1_C05": { name: "Biến đổi động năng, thế năng và cơ năng khi vật rơi", explanation: "Phân biệt động năng tăng, thế năng giảm và cơ năng không đổi khi vật rơi xuống." },
+    "L1_C06": { name: "Cơ năng và chuyển hóa năng lượng khi vật ném lên", explanation: "Nhận ra khi vật ném lên, động năng giảm, thế năng tăng và cơ năng được bảo toàn nếu bỏ qua lực cản." },
+    "L1_C07": { name: "Chuyển hóa động năng và thế năng của con lắc", explanation: "Phân biệt sự chuyển hóa giữa động năng và thế năng trong quá trình con lắc chuyển động." },
+    "L1_C08": { name: "Tính thế năng trọng trường", explanation: "Vận dụng công thức thế năng trọng trường để tính thế năng của vật so với mốc chọn." },
+    "L1_C09": { name: "Tính động năng khi vật rơi", explanation: "Tính động năng của vật khi thế năng ban đầu chuyển hóa thành động năng trong quá trình rơi." },
+    "L1_C10": { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Xác định mối quan hệ giữa động năng và thế năng trong trường hợp hai đại lượng bằng nhau." },
+    
+    // Level 2
+    "L2_C01": { name: "Nhận biết động năng, thế năng và cơ năng", explanation: "Phân biệt được động năng, thế năng trọng trường và cơ năng của vật." },
+    "L2_C02": { name: "Bảo toàn cơ năng khi bỏ qua lực cản", explanation: "Nhận biết cơ năng được bảo toàn khi vật chuyển động trong trọng trường và bỏ qua lực cản." },
+    "L2_C03": { name: "Cơ năng ban đầu của vật được thả rơi", explanation: "Xác định cơ năng ban đầu của vật được thả rơi từ trạng thái nghỉ." },
+    "L2_C04": { name: "Biến đổi động năng, thế năng và cơ năng khi vật rơi", explanation: "Xác định động năng tăng, thế năng giảm và cơ năng không đổi trong quá trình vật rơi." },
+    "L2_C05": { name: "Chuyển hóa năng lượng của con lắc khi đi lên", explanation: "Nhận ra khi con lắc đi lên, động năng giảm và thế năng tăng." },
+    "L2_C06": { name: "Tính cơ năng từ động năng và thế năng", explanation: "Tính cơ năng của vật bằng tổng động năng và thế năng." },
+    "L2_C07": { name: "Tính thế năng từ cơ năng và động năng", explanation: "Dùng cơ năng và động năng đã biết để xác định thế năng của vật." },
+    "L2_C08": { name: "Tính động năng từ quãng đường rơi", explanation: "Tính động năng của vật dựa vào phần thế năng giảm khi vật rơi được một quãng đường." },
+    "L2_C09": { name: "Tỉ lệ giữa thế năng và động năng", explanation: "Lập quan hệ giữa thế năng và động năng theo tỉ lệ cho trước." },
+    "L2_C10": { name: "Động năng của con lắc tại vị trí thấp nhất", explanation: "Tính động năng của con lắc tại vị trí thấp nhất dựa vào sự chuyển hóa từ thế năng ban đầu." },
+
+    // Level 3
+    "L3_C01": { name: "Cơ năng và mốc thế năng", explanation: "Nhận biết cơ năng là đại lượng vô hướng và giá trị cơ năng có thể phụ thuộc vào mốc thế năng đã chọn." },
+    "L3_C02": { name: "Sự phụ thuộc của cơ năng vào mốc thế năng", explanation: "Giải thích được giá trị cơ năng thay đổi khi thế năng thay đổi theo mốc thế năng được chọn." },
+    "L3_C03": { name: "Động năng ban đầu khi vật nảy cao hơn", explanation: "Nhận ra vật cần có thêm động năng ban đầu để sau va chạm có thể nảy lên cao hơn vị trí ban đầu." },
+    "L3_C04": { name: "Tốc độ chạm sàn của vật ném ngang", explanation: "Vận dụng bảo toàn cơ năng để xác định tốc độ của vật ném ngang khi chạm sàn." },
+    "L3_C05": { name: "Vận tốc ở chân mặt phẳng nghiêng", explanation: "Tính vận tốc của vật ở chân mặt phẳng nghiêng khi thế năng ban đầu chuyển hóa thành động năng." },
+    "L3_C06": { name: "So sánh động năng và thế năng trên mặt phẳng nghiêng", explanation: "So sánh động năng và thế năng của vật tại một trạng thái chuyển động trên mặt phẳng nghiêng." },
+    "L3_C07": { name: "Thế năng ban đầu của con lắc đơn", explanation: "Tính thế năng ban đầu của con lắc đơn dựa vào độ cao so với vị trí thấp nhất." },
+    "L3_C08": { name: "Vận tốc ném ban đầu khi bóng nảy lên", explanation: "Xác định vận tốc ném ban đầu của bóng bằng cách so sánh cơ năng ở các trạng thái chuyển động." },
+    "L3_C09": { name: "Vận tốc của con lắc tại vị trí bất kỳ", explanation: "Tính vận tốc của con lắc tại một vị trí bất kỳ dựa vào độ giảm thế năng." },
+    "L3_C10": { name: "Hao hụt cơ năng do lực cản không khí", explanation: "Xác định phần trăm cơ năng bị hao hụt do lực cản không khí trong quá trình chuyển động." }
+};
 
     const STRENGTH_TEMPLATES = {
         '2': (tag1, tag2) => [
@@ -813,9 +873,19 @@
     };
 
     function getLevelTagsData(level, entry) {
+        // 1. Xử lý riêng cho Level 0 theo cấu trúc ID (0, 1, 2...)
         if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
             return LEVEL_0_TAGS_DATA[entry.qIdx];
         }
+
+        // 2. Xử lý cho Level 1, 2, 3 theo cấu trúc mã L(n)_Cxx
+        // Chuyển L1_Q1 thành L1_C01 để khớp với bảng dữ liệu của anh
+        const tagKey = entry.id.replace("Q", "C"); 
+        if (LEVEL_TAGS_DATA[tagKey]) {
+            return LEVEL_TAGS_DATA[tagKey];
+        }
+
+        // 3. Fallback: Nếu không tìm thấy Tag (trường hợp dự phòng)
         return { 
             name: entry.topic, 
             explanation: "nội dung về " + entry.topic.toLowerCase() 
