@@ -981,24 +981,48 @@
     }
 
     function toggleReviewDetail(idx) {
-        const entry = answerLog.filter(a => a.level === gameState.current_level)[idx];
+        // Lấy danh sách câu hỏi của level hiện tại
+        const levelResults = answerLog.filter(a => a.level === gameState.current_level);
+        const entry = levelResults[idx];
         const q = currentQuestionSet[entry.qIdx];
+        
         const reviewList = document.getElementById('review-list');
         const existing = reviewList.querySelector(`[data-detail-idx="${idx}"]`);
-        if (existing) { existing.remove(); return; }
+        
+        // Nếu đã mở thì đóng lại
+        if (existing) { 
+            existing.remove(); 
+            return; 
+        }
+        
+        // Xóa các chi tiết cũ đang mở
         reviewList.querySelectorAll('[data-detail-idx]').forEach(el => el.remove());
+        
+        // Tạo khối hiển thị giải thích
         const div = document.createElement('div');
         div.setAttribute('data-detail-idx', idx);
         div.className = 'mt-2 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm text-gray-700';
-        let html = `<p class="font-bold mb-2">${q.question}</p>`;
-        if (entry.correct) { html += `<p class="text-green-700 font-semibold">✓ Em đã trả lời đúng.</p>`; }
-        else { html += `<p class="text-red-700 font-semibold mb-2">✗ Sai</p><p class="text-gray-600 text-xs">${q.explanation.split('\n').slice(0,3).join('<br>')}</p>`; }
+        
+        let html = `<p class="font-bold mb-2">Câu hỏi: ${q.question}</p>`;
+        
+        if (entry.correct) { 
+            html += `<p class="text-green-700 font-semibold">✓ Em đã trả lời đúng!</p>`; 
+        } else { 
+            html += `<p class="text-red-700 font-semibold mb-2">✗ Em đã chọn sai. Đáp án đúng là:</p>`;
+            // Hiển thị phần giải thích câu hỏi (đã bao gồm đáp án đúng trong q.explanation)
+            html += `<p class="text-gray-600 italic border-l-2 border-red-300 pl-2 whitespace-pre-line">${q.explanation}</p>`;
+        }
+        
         div.innerHTML = html;
+        
+        // Chèn vào dưới nút bấm của câu đó
         const buttons = reviewList.querySelectorAll('button');
-        if (buttons[idx+1]) reviewList.insertBefore(div, buttons[idx+1]);
-        else reviewList.appendChild(div);
+        if (buttons[idx]) {
+            reviewList.insertBefore(div, buttons[idx].nextSibling);
+        } else {
+            reviewList.appendChild(div);
+        }
     }
-
     function showLeaderboard() { switchScreen('leaderboard-screen'); renderLeaderboard(); }
     function showLeaderboardFromStart() { switchScreen('leaderboard-screen'); renderLeaderboard(); }
     
