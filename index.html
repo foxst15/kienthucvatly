@@ -965,38 +965,39 @@ const IMPROVE_TEMPLATES = {
         const feedbackHeader = "🌟 ";
         const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
 
-        if (correctCount === 0) return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
-        if (correctCount === 1) {
-            return feedbackHeader + "Em đã làm đúng được 1 câu rồi! Đây là khởi đầu tốt. Hãy xem kỹ lại các phần giải thích để củng cố kiến thức cho câu tiếp theo nhé!";
+        if (correctCount === 0) {
+            return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
         }
-        
-        // Cập nhật để điểm tuyệt đối tự động khớp với tổng số câu (total)
-        if (correctCount === total) return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.`;
-        
-        let maxTags = (correctCount === 2) ? 2 : ((correctCount >= 3 && correctCount <= 8) ? 3 : 4);
+
+        // Gán templateKey, nếu đúng 10 điểm tuyệt đối thì mượn mẫu số 9 (4 thẻ) để khen cho hoành tráng
+        let templateKey = correctCount.toString();
+        if (correctCount === 10) templateKey = '9';
+
+        // Tự động phân bổ số thẻ lấy ra (maxTags) theo đúng templateKey
+        let maxTags = 1;
+        if (templateKey === '2') maxTags = 2;
+        else if (templateKey >= '3' && templateKey <= '8') maxTags = 3;
+        else if (templateKey === '9') maxTags = 4;
+
+        // Gắp data cho các thẻ
         const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
+
+        // Áp dụng STRENGTH_TEMPLATES cho TẤT CẢ các Level
+        const templates = STRENGTH_TEMPLATES[templateKey];
         
-        // CHỈ dùng template gán sẵn cho Level 0
-        if (level === 0) {
-            const templates = STRENGTH_TEMPLATES[correctCount.toString()];
-            if (templates) {
-                return feedbackHeader + templates(...selectedTagsData).map(item => `* ${item}`).join('\n');
+        if (templates) {
+            const feedbackItems = templates(...selectedTagsData);
+            const feedbackList = feedbackItems.map(item => `* ${item}`).join('\n');
+            
+            // Nếu được điểm tuyệt đối thì khen câu đặc biệt trước, rồi in thẻ sau
+            if (correctCount === total) {
+                return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.\n` + feedbackList;
             }
+            return feedbackHeader + "\n" + feedbackList;
         }
 
-        // Các Level 1, 2, 3 sẽ dùng logic tự động siêu mượt này:
-        let feedback = feedbackHeader;
-        if (correctCount >= (total * 0.7)) {
-            feedback += "Rất tốt! Em đã nắm vững hầu hết các nội dung trọng tâm của cấp độ này:\n";
-        } else {
-            feedback += "Em đã nắm được một vài kiến thức cơ bản sau:\n";
-        }
-        
-        selectedTagsData.forEach(tag => {
-            feedback += `* ${tag.name}: ${tag.explanation.charAt(0).toUpperCase() + tag.explanation.slice(1)}.\n`;
-        });
-
-        return feedback;
+        // Fallback (Phòng hờ nếu không có template)
+        return feedbackHeader + `Em đã đạt được ${correctCount}/${total} điểm.`;
     }
 
     function generateImproveFeedback(levelResults, level) {
