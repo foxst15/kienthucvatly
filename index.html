@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="vi">
  <head>
@@ -42,14 +41,8 @@
     .screen { display: none; width: 100%; max-width: 600px; }
     .screen.active { display: flex; flex-direction: column; }
     
-    /* Responsive cho các nút bấm và vùng câu hỏi */
     button { touch-action: manipulation; }
     .question-area { width: 100%; }
-    
-    .fade-in { animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    
-    /* Responsive cho Leaderboard */
     .lb-row { animation: slideUp 0.4s ease forwards; opacity: 0; width: 100%; }
   </style>
  </head>
@@ -128,8 +121,6 @@
   </div>
   
   <script>
-    // ==========================================
-    // DATA SDK GIẢ LẬP
     window.dataSdk = {
         init: async function(handler) {
             setTimeout(() => {
@@ -165,11 +156,11 @@
     }
     function correctSound() { playSound(523,'sine',0.15); setTimeout(()=>playSound(659,'sine',0.15),100); setTimeout(()=>playSound(784,'sine',0.3),200); }
     function wrongSound() { playSound(200,'square',0.3); }
+
     function startLevel1() { startLevel(1, LEVEL_1_QUESTIONS); }
     function startLevel2() { startLevel(2, LEVEL_2_QUESTIONS); }
     function startLevel3() { startLevel(3, LEVEL_3_QUESTIONS); }
 
-    // ==================== CÂU HỎI LEVEL 0 ====================
     const LEVEL_0_QUESTIONS = [
         { id:"L0_Q1", level:0, question_set:"LEVEL_0", tags:["cơ_năng","khái_niệm"], type:'choice', topic:'Cơ năng', question:'Cơ năng của một vật bằng:', options:['Hiệu của động năng và thế năng của vật.','Hiệu của thế năng và động năng của vật.','Tổng động năng và thế năng của vật.','Tích của động năng và thế năng của vật.'], correct_answer:2, hint1:'💡 Gợi ý: Em hãy nhớ cơ năng liên quan đến cả động năng và thế năng của vật, không phải chỉ một trong hai dạng năng lượng.', hint2:'Cơ năng = Động năng + Thế năng', explanation:'Đáp án đúng là:\nC. Tổng động năng và thế năng của vật.\n📘 Giải thích đáp án:\nCơ năng của một vật là tổng động năng và thế năng của vật.\nCông thức:\nW = Wđ + Wt\nCơ năng không phải là hiệu hoặc tích của động năng và thế năng.' },
         { id:"L0_Q2", level:0, question_set:"LEVEL_0", tags:["bảo_toàn_cơ_năng","rơi_tự_do"], type:'sorting', topic:'Bảo toàn cơ năng', question:'Khi một vật được thả rơi tự do, bỏ qua lực cản không khí, hãy phân loại các phát biểu sau vào ô Đúng hoặc Sai.', statements:['Động năng của vật tăng dần.','Thế năng của vật giảm dần.','Tổng động năng và thế năng của vật không đổi.','Cơ năng của vật luôn thay đổi.'], answers:[true,true,true,false], hint1:'💡 Gợi ý: Em hãy xét quá trình vật rơi tự do: độ cao giảm dần còn tốc độ tăng dần. Khi bỏ qua lực cản không khí, tổng động năng và thế năng có thay đổi không?', hint2:'Trong rơi tự do không có lực cản, cơ năng được bảo toàn. Động năng tăng, thế năng giảm nhưng tổng không đổi.', explanation:'Đáp án đúng là:\nPhát biểu 1: Đúng.\nPhát biểu 2: Đúng.\nPhát biểu 3: Đúng.\nPhát biểu 4: Sai.\n📘 Giải thích đáp án:\nKhi vật rơi tự do và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\nPhân tích:\nTrong quá trình rơi, vận tốc tăng nên động năng tăng dần.\nĐộ cao giảm nên thế năng giảm dần.\nTổng động năng và thế năng không đổi.\nPhát biểu "cơ năng của vật luôn thay đổi" là sai.' },
@@ -183,7 +174,6 @@
         { id:"L0_Q10", level:0, question_set:"LEVEL_0", tags:["chuyển_hóa_năng_lượng","tính_toán","ném"], type:'choice', topic:'Chuyển hóa năng lượng', question:'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 10 m/s². Vận tốc ném ban đầu của bóng là bao nhiêu?', options:['15 m/s','25 m/s','20 m/s','10 m/s'], correct_answer:2, hint1:'💡 Gợi ý: Em hãy so sánh cơ năng ban đầu ở độ cao 20 m với cơ năng khi bóng nảy lên đến độ cao 40 m. Phần chênh lệch năng lượng liên quan đến vận tốc ném ban đầu.', hint2:'(1/2)×0,2×v₀² + 0,2×10×20 = 0,2×10×40', explanation:'Đáp án đúng là:\nC. 20 m/s.\n📘 Giải thích đáp án:\nCơ năng khi bóng nảy lên đến độ cao 40 m:\nW = mg.40\nCơ năng ban đầu:\nBóng ở độ cao 20 m và có vận tốc ban đầu v0.\nBiểu thức:\nW = mg.20 + 1/2.m.v0²\nBảo toàn cơ năng:\nmg.20 + 1/2.m.v0² = mg.40\nRút gọn:\n1/2.v0² = g.(40 - 20)\nThay số:\n1/2.v0² = 10.20 = 200\nSuy ra:\nv0² = 400\nv0 = 20 m/s' }
     ];
 
-    // ==================== CÂU HỎI LEVEL 1 ====================
     const LEVEL_1_QUESTIONS = [
         { id:"L1_Q1", level:1, question_set:"LEVEL_1", tags:["công_thức","khái_niệm"], type:'dragdrop', topic:'Công thức cơ bản', question:'Hãy ghép mỗi đại lượng vật lí với công thức tương ứng.', pairs:[['Động năng','Wđ = 1/2.m.v²'],['Thế năng trọng trường','Wt = m.g.h'],['Cơ năng','W = Wđ + Wt']], hint1:'💡 Em hãy dựa vào ý nghĩa của từng đại lượng. Đại lượng liên quan đến chuyển động sẽ gắn với vận tốc; đại lượng liên quan đến độ cao sẽ gắn với h; còn cơ năng liên quan đến cả hai dạng năng lượng.', hint2:'Động năng = (1/2)mv², Thế năng = mgh, Cơ năng = Động năng + Thế năng', explanation:'Đáp án đúng là:\nĐộng năng → Wđ = 1/2.m.v²\nThế năng trọng trường → Wt = m.g.h\nCơ năng → W = Wđ + Wt\n📘 Giải thích đáp án:\nĐộng năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nGhi nhớ:\nW = Wđ + Wt' },
         { id:"L1_Q2", level:1, question_set:"LEVEL_1", tags:["khái_niệm","đại_lượng"], type:'choice', topic:'Khái niệm cơ năng', question:'Hãy chọn thẻ mô tả đúng về cơ năng.', options:['Cơ năng là đại lượng vô hướng.','Cơ năng là vectơ cùng hướng với vận tốc.','Cơ năng là vectơ cùng hướng với trọng lực.','Cơ năng chỉ phụ thuộc vào thời gian.'], correct_answer:0, hint1:'💡 Em hãy nhớ cơ năng là một dạng năng lượng. Khi xét một dạng năng lượng, em cần xác định nó có hướng như vectơ hay chỉ có giá trị độ lớn.', hint2:'Năng lượng không có phương và chiều, nó chỉ có giá trị lớn.', explanation:'Đáp án đúng là:\nA. Cơ năng là đại lượng vô hướng.\n📘 Giải thích đáp án:\nCơ năng là một dạng năng lượng.\nNăng lượng là đại lượng vô hướng, không có hướng như vectơ.\nDo đó, cơ năng không phải là vectơ cùng hướng với vận tốc hay trọng lực.' },
@@ -197,7 +187,6 @@
         { id:"L1_Q10", level:1, question_set:"LEVEL_1", tags:["tính_toán","bảo_toàn_cơ_năng"], type:'choice', topic:'Bảo toàn cơ năng - Ứng dụng', question:'Một vật được ném thẳng đứng lên từ mặt đất với vận tốc ban đầu v0 = 10 m/s. Bỏ qua lực cản không khí. Khi động năng bằng thế năng, tốc độ của vật gần đúng bằng bao nhiêu?', options:['5,0 m/s.','7,1 m/s.','10 m/s.','14,1 m/s.'], correct_answer:1, hint1:'💡 Em hãy xét cơ năng ban đầu của vật khi vừa được ném lên từ mặt đất. Khi động năng bằng thế năng, động năng chỉ còn là một phần của cơ năng ban đầu; từ đó so sánh tốc độ lúc đó với vận tốc ban đầu.', hint2:'(1/2).m.v0² = 2.(1/2).m.v² → v = v0/√2 ≈ 10/1.414 ≈ 7,1 m/s', explanation:'Đáp án đúng là:\nB. 7,1 m/s.\n📘 Giải thích đáp án:\nCơ năng ban đầu:\nW = 1/2.m.v0²\nKhi động năng bằng thế năng:\nWđ = Wt\nSuy ra:\nĐộng năng bằng một nửa cơ năng ban đầu.\nTa có:\n1/2.m.v² = 1/2.(1/2.m.v0²)\nRút gọn:\nv² = v0²/2\nSuy ra:\nv = v0/√2\nThay số:\nv = 10/√2 ≈ 7,1 m/s' }
     ];
 
-    // ==================== CÂU HỎI LEVEL 2 ====================
     const LEVEL_2_QUESTIONS = [
         { id:"L2_Q1", level:2, question_set:"LEVEL_2", tags:["khái_niệm","cơ_năng"], type:'dragdrop', topic:'Đại lượng vật lí', question:'Hãy ghép mỗi đại lượng vật lí với mô tả tương ứng.', pairs:[['Động năng','Năng lượng liên quan đến chuyển động của vật.'],['Thế năng trọng trường','Năng lượng liên quan đến vị trí của vật trong trọng trường.'],['Cơ năng','Tổng động năng và thế năng của vật.']], hint1:'💡 Gợi ý: Em hãy nhớ động năng gắn với chuyển động, thế năng trọng trường gắn với độ cao, còn cơ năng gồm cả động năng và thế năng.', hint2:'Cơ năng = Động năng + Thế năng trọng trường.', explanation:'Đáp án đúng là:\nĐộng năng → Năng lượng liên quan đến chuyển động của vật.\nThế năng trọng trường → Năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng → Tổng động năng và thế năng của vật.\n📘 Giải thích đáp án:\nĐộng năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nW = Wđ + Wt' },
         { id:"L2_Q2", level:2, question_set:"LEVEL_2", tags:["bảo_toàn_cơ_năng","lý_thuyết"], type:'sorting', topic:'Bảo toàn cơ năng', question:'Khi một vật chuyển động trong trọng trường và bỏ qua lực cản không khí, hãy kéo các phát biểu sau vào ô Đúng hoặc Sai.', statements:['Cơ năng của vật được bảo toàn.','Động năng và thế năng có thể thay đổi trong quá trình chuyển động.','Tổng động năng và thế năng của vật không đổi.','Cơ năng luôn giảm trong quá trình chuyển động.'], answers:[true,true,true,false], hint1:'💡 Gợi ý: Em hãy chú ý điều kiện “bỏ qua lực cản không khí”. Khi đó, động năng và thế năng có thể chuyển hóa qua lại, nhưng tổng của chúng có thay đổi không?', hint2:'Khi không có lực cản, tổng Wđ + Wt luôn là một hằng số.', explanation:'Đáp án đúng là:\nPhát biểu 1: Đúng.\nPhát biểu 2: Đúng.\nPhát biểu 3: Đúng.\nPhát biểu 4: Sai.\n📘 Giải thích đáp án:\nKhi vật chuyển động trong trọng trường và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\nĐộng năng và thế năng có thể thay đổi trong quá trình chuyển động.\nTuy nhiên, tổng động năng và thế năng không đổi.\nPhát biểu “cơ năng luôn giảm trong quá trình chuyển động” là sai.' },
@@ -211,7 +200,6 @@
         { id:"L2_Q10", level:2, question_set:"LEVEL_2", tags:["tính_toán","con_lắc"], type:'fillin', topic:'Con lắc đơn', question:'Một con lắc đơn có dây treo dài 1 m, vật nặng có khối lượng 0,5 kg. Kéo vật đến vị trí dây treo lệch phương thẳng đứng một góc 60° rồi thả nhẹ. Lấy g = 10 m/s², bỏ qua lực cản. Chọn mốc thế năng tại vị trí thấp nhất. Động năng của vật khi đi qua vị trí thấp nhất bằng bao nhiêu J?', answer:'2,5|2.5', hint1:'💡 Gợi ý: Em hãy tìm độ cao ban đầu của vật so với vị trí thấp nhất. Khi vật đi qua vị trí thấp nhất, thế năng ban đầu đã chuyển hóa thành động năng.', hint2:'Độ cao h = l*(1 - cos60°). Thế năng ban đầu = m*g*h.', explanation:'Đáp án đúng là:\n2,5 J.\n📘 Giải thích đáp án:\nĐộ cao ban đầu của vật so với vị trí thấp nhất là:\nh = l.(1 - cos60°) = 1.(1 - 0,5) = 0,5 m\nThế năng ban đầu của vật là:\nWt = m.g.h = 0,5.10.0,5 = 2,5 J\nVật được thả nhẹ nên động năng ban đầu bằng 0.\nBỏ qua lực cản nên cơ năng được bảo toàn. Khi vật đi qua vị trí thấp nhất, thế năng chuyển hóa thành động năng -> Wđ = 2,5 J.' }
     ];
 
-    // ==================== CÂU HỎI LEVEL 3 ====================
     const LEVEL_3_QUESTIONS = [
         { id:"L3_Q1", level:3, question_set:"LEVEL_3", tags:["lý_thuyết","cơ_năng"], type:'choice', topic:'Tính chất cơ năng', question:'Phát biểu nào sau đây đúng về cơ năng của một vật?', options:['Cơ năng là đại lượng vô hướng và có thể âm, dương hoặc bằng không tùy theo mốc thế năng.','Cơ năng là đại lượng vectơ và luôn dương.','Cơ năng chỉ phụ thuộc vào động năng của vật.','Cơ năng luôn bằng thế năng của vật.'], correct_answer:0, hint1:'💡 Gợi ý: Hãy nhớ cơ năng được tạo từ những dạng năng lượng nào. Cơ năng là đại lượng vô hướng hay vectơ? Giá trị thế năng có phụ thuộc vào mốc chọn hay không?', hint2:'Năng lượng luôn vô hướng. Thế năng có thể âm nên cơ năng cũng có thể âm.', explanation:'Đáp án đúng là:\nA. Cơ năng là đại lượng vô hướng và có thể âm, dương hoặc bằng không tùy theo mốc thế năng.\n📘 Giải thích đáp án:\nCơ năng là tổng động năng và thế năng của vật.\nĐộng năng và thế năng đều là đại lượng vô hướng nên cơ năng cũng là đại lượng vô hướng.\nVì thế năng phụ thuộc vào mốc thế năng được chọn, nên giá trị cơ năng có thể âm, dương hoặc bằng không.' },
         { id:"L3_Q2", level:3, question_set:"LEVEL_3", tags:["lý_thuyết","mốc_thế_năng"], type:'choice', topic:'Mốc thế năng', question:'Vì sao giá trị cơ năng của một vật có thể thay đổi khi chọn mốc thế năng khác nhau?', options:['Vì thế năng phụ thuộc vào mốc thế năng được chọn.','Vì động năng luôn thay đổi khi đổi mốc thế năng.','Vì khối lượng của vật thay đổi theo mốc thế năng.','Vì vận tốc của vật luôn bằng 0 khi đổi mốc thế năng.'], correct_answer:0, hint1:'💡 Gợi ý: Hãy so sánh động năng và thế năng: động năng phụ thuộc vào đại lượng nào, còn thế năng phụ thuộc vào yếu tố nào khi chọn mốc thế năng khác nhau?', hint2:'Động năng phụ thuộc vận tốc, thế năng phụ thuộc vào gốc tọa độ (mốc).', explanation:'Đáp án đúng là:\nA. Vì thế năng phụ thuộc vào mốc thế năng được chọn.\n📘 Giải thích đáp án:\nĐộng năng phụ thuộc vào khối lượng và vận tốc của vật, nên không thay đổi khi chỉ đổi mốc thế năng.\nThế năng phụ thuộc vào mốc thế năng được chọn.\nDo cơ năng bằng tổng động năng và thế năng, nên khi thế năng thay đổi theo mốc chọn thì giá trị cơ năng cũng có thể thay đổi.' },
@@ -330,10 +318,7 @@
         const items = document.getElementById('drag-items');
         dragDropInitialState = {
             zones: Array.from(zones).map(z => z.textContent),
-            items: Array.from(items.children).map(item => ({
-                text: item.textContent,
-                html: item.outerHTML
-            }))
+            items: Array.from(items.children).map(item => ({ text: item.textContent, html: item.outerHTML }))
         };
     }
 
@@ -341,24 +326,14 @@
         if (!dragDropInitialState) return;
         const zones = document.querySelectorAll('.drop-zone');
         const dragItemsContainer = document.getElementById('drag-items');
-        
-        zones.forEach((z, i) => {
-            z.textContent = dragDropInitialState.zones[i];
-            z.classList.remove('bg-orange-100', 'drag-over');
-        });
-        
+        zones.forEach((z, i) => { z.textContent = dragDropInitialState.zones[i]; z.classList.remove('bg-orange-100', 'drag-over'); });
         dragItemsContainer.innerHTML = '';
         dragDropInitialState.items.forEach(itemData => {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = itemData.html;
             const newItem = tempDiv.firstElementChild;
-            newItem.addEventListener('dragstart', function(e) {
-                e.dataTransfer.setData('text', this.textContent);
-                this.classList.add('dragging');
-            });
-            newItem.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-            });
+            newItem.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text', this.textContent); this.classList.add('dragging'); });
+            newItem.addEventListener('dragend', function() { this.classList.remove('dragging'); });
             dragItemsContainer.appendChild(newItem);
         });
     }
@@ -367,7 +342,6 @@
         e.preventDefault();
         const zone = e.target.closest('.drop-zone');
         if (!zone) return; 
-
         const text = e.dataTransfer.getData('text');
         zone.textContent = text;
         zone.classList.remove('drag-over');
@@ -421,16 +395,9 @@
         if (correct) topicScores[q.topic].correct++;
         gameState.answered_count++;
         answerLog.push({
-            qIdx: currentQ,
-            id: q.id,
-            level: q.level,
-            question_set: q.question_set,
-            question: q.question,
-            topic: q.topic,
-            tags: q.tags,
-            type: q.type,
-            userAnswer: userAnswer,
-            correct: correct
+            qIdx: currentQ, id: q.id, level: q.level, question_set: q.question_set,
+            question: q.question, topic: q.topic, tags: q.tags, type: q.type,
+            userAnswer: userAnswer, correct: correct
         });
     }
 
@@ -480,11 +447,8 @@
         const q = currentQuestionSet[currentQ];
         attempts++;
         const isLevel1 = gameState.current_level === 1;
-        
         let allCorrect = true;
-        for (let i = 0; i < q.answers.length; i++) {
-            if (sortingAnswers[i] !== q.answers[i]) allCorrect = false;
-        }
+        for (let i = 0; i < q.answers.length; i++) { if (sortingAnswers[i] !== q.answers[i]) allCorrect = false; }
         
         if (allCorrect) {
             isQuestionAnswered = true;
@@ -519,7 +483,6 @@
         const q = currentQuestionSet[currentQ];
         attempts++;
         const isLevel1 = gameState.current_level === 1;
-        
         let allCorrect = false;
         let userAnswerRecord = '';
 
@@ -551,9 +514,7 @@
                     if (Array.isArray(q.answer)) {
                         const questionParts = q.question.split('[___]');
                         let questionHTML = questionParts[0];
-                        for (let i = 1; i < questionParts.length; i++) {
-                            questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i];
-                        }
+                        for (let i = 1; i < questionParts.length; i++) { questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i]; }
                         area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
                         <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
                     } else {
@@ -578,7 +539,6 @@
         const val = parseInt(document.getElementById('slider-input').value);
         attempts++;
         const isLevel1 = gameState.current_level === 1;
-        
         if (val === q.correct_answer) {
             isQuestionAnswered = true;
             score += attempts === 1 ? 10 : 5;
@@ -613,10 +573,8 @@
         let allCorrect = true;
         const userMatches = [];
         zones.forEach((z, i) => { const text = z.textContent.trim(); userMatches.push(text); if (text !== q.pairs[i][1]) allCorrect = false; });
-        
         attempts++;
         const isLevel1 = gameState.current_level === 1;
-        
         if (allCorrect) {
             isQuestionAnswered = true;
             score += attempts === 1 ? 10 : 5;
@@ -628,11 +586,7 @@
         } else {
             currentDragDropAttempt++;
             if (currentDragDropAttempt === 1) {
-                if (isLevel1) {
-                    showFeedback(false, q.hint1, true);
-                } else {
-                    showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
-                }
+                if (isLevel1) { showFeedback(false, q.hint1, true); } else { showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1); }
                 setTimeout(() => { resetDragDrop(); }, 600);
             } else if (currentDragDropAttempt >= 2) {
                 isQuestionAnswered = true;
@@ -653,211 +607,178 @@
         }
     }
 
-// Dữ liệu Tag và Diễn giải chi tiết cho Level 0
-const LEVEL_0_TAGS_DATA = {
-    0: { name: "Khái niệm cơ năng", explanation: "Nhận biết cơ năng là đại lượng gắn với động năng và thế năng của vật." },
-    1: { name: "Cơ năng bảo toàn trong rơi tự do", explanation: "Nhận ra cơ năng có thể được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí." },
-    2: { name: "Biến đổi động năng, thế năng và cơ năng", explanation: "Phân biệt động năng tăng, thế năng giảm và cơ năng không đổi trong quá trình vật chuyển động." },
-    3: { name: "Chuyển hóa năng lượng khi vật đi lên", explanation: "Nhận ra khi vật đi lên, động năng giảm dần và thế năng tăng dần." },
-    4: { name: "Cơ năng bảo toàn khi bỏ qua lực cản", explanation: "Nhận biết điều kiện bỏ qua lực cản giúp cơ năng của vật được bảo toàn." },
-    5: { name: "Tính động năng từ cơ năng", explanation: "Dùng mối quan hệ giữa cơ năng, động năng và thế năng để xác định động năng của vật." },
-    6: { name: "Xác định cơ năng ban đầu của vật ném lên", explanation: "Xác định cơ năng ban đầu của vật dựa vào vận tốc ban đầu và mốc thế năng đã chọn." },
-    7: { name: "Tính động năng từ độ giảm thế năng", explanation: "Liên hệ phần thế năng giảm đi với phần động năng mà vật nhận được." },
-    8: { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Lập quan hệ giữa động năng và thế năng theo tỉ lệ cho trước." },
-    9: { name: "Bảo toàn cơ năng qua nhiều trạng thái", explanation: "So sánh cơ năng của vật ở nhiều trạng thái chuyển động khác nhau." }
-};
+    const LEVEL_0_TAGS_DATA = {
+        0: { name: "Khái niệm cơ năng", explanation: "Nhận biết cơ năng là đại lượng gắn với động năng và thế năng của vật." },
+        1: { name: "Cơ năng bảo toàn trong rơi tự do", explanation: "Nhận ra cơ năng có thể được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí." },
+        2: { name: "Biến đổi động năng, thế năng và cơ năng", explanation: "Phân biệt động năng tăng, thế năng giảm và cơ năng không đổi trong quá trình vật chuyển động." },
+        3: { name: "Chuyển hóa năng lượng khi vật đi lên", explanation: "Nhận ra khi vật đi lên, động năng giảm dần và thế năng tăng dần." },
+        4: { name: "Cơ năng bảo toàn khi bỏ qua lực cản", explanation: "Nhận biết điều kiện bỏ qua lực cản giúp cơ năng của vật được bảo toàn." },
+        5: { name: "Tính động năng từ cơ năng", explanation: "Dùng mối quan hệ giữa cơ năng, động năng và thế năng để xác định động năng của vật." },
+        6: { name: "Xác định cơ năng ban đầu của vật ném lên", explanation: "Xác định cơ năng ban đầu của vật dựa vào vận tốc ban đầu và mốc thế năng đã chọn." },
+        7: { name: "Tính động năng từ độ giảm thế năng", explanation: "Liên hệ phần thế năng giảm đi với phần động năng mà vật nhận được." },
+        8: { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Lập quan hệ giữa động năng và thế năng theo tỉ lệ cho trước." },
+        9: { name: "Bảo toàn cơ năng qua nhiều trạng thái", explanation: "So sánh cơ năng của vật ở nhiều trạng thái chuyển động khác nhau." }
+    };
 
-// Logic tạo phản hồi Điểm Mạnh (Level 0)
-const STRENGTH_TEMPLATES = {
-    '2': (tag1, tag2) => [
-        `${tag1.name}: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã bắt đầu hình thành khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-    ],
-    '3': (tag1, tag2) => [
-        `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-    ],
-    '4': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã bước đầu biết vận dụng kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}, đây là điểm tựa để tiếp tục củng cố ở Level 1.`
-    ],
-    '5': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã có nền tảng ban đầu để tiếp tục rèn luyện khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã bước đầu nhận diện được kiến thức trọng tâm thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-    ],
-    '6': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em đã làm đúng một số câu hỏi liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã bước đầu biết liên hệ kiến thức với tình huống cụ thể thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã có nền tảng ban đầu để tiếp tục rèn cách phân tích và vận dụng nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-    ],
-    '7': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em đã bước đầu vận dụng được kiến thức để ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-    ],
-    '8': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em đã làm tốt nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã nhận diện tốt cách xử lí kiến thức thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã vận dụng khá tốt kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-    ],
-    '9': (tag1, tag2, tag3, tag4) => [
-        `${tag1.name}: Em đã làm tốt phần kiến thức liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã vận dụng khá tốt kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã nhận diện tốt nội dung cốt lõi thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`,
-        `${tag4.name}: Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag4.explanation.charAt(0).toLowerCase() + tag4.explanation.slice(1)}`
-    ]
-};
+    const STRENGTH_TEMPLATES = {
+        '2': (tag1, tag2) => [
+            `${tag1.name}: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã bắt đầu hình thành khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+        ],
+        '3': (tag1, tag2) => [
+            `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+        ],
+        '4': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã bước đầu biết vận dụng kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}, đây là điểm tựa để tiếp tục củng cố ở Level 1.`
+        ],
+        '5': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã có nền tảng ban đầu để tiếp tục rèn luyện khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã bước đầu nhận diện được kiến thức trọng tâm thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        ],
+        '6': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em đã làm đúng một số câu hỏi liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã bước đầu biết liên hệ kiến thức với tình huống cụ thể thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã có nền tảng ban đầu để tiếp tục rèn cách phân tích và vận dụng nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        ],
+        '7': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em đã bước đầu vận dụng được kiến thức để ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        ],
+        '8': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em đã làm tốt nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã nhận diện tốt cách xử lí kiến thức thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã vận dụng khá tốt kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        ],
+        '9': (tag1, tag2, tag3, tag4) => [
+            `${tag1.name}: Em đã làm tốt phần kiến thức liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em đã vận dụng khá tốt kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em đã nhận diện tốt nội dung cốt lõi thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`,
+            `${tag4.name}: Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag4.explanation.charAt(0).toLowerCase() + tag4.explanation.slice(1)}`
+        ]
+    };
 
-// Logic tạo phản hồi Điểm Cần Cải Thiện (Level 0)
-const IMPROVE_TEMPLATES = {
-    '1': (tag1) => [
-        `${tag1.name}: Em nên rà soát thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
-    ],
-    '2': (tag1, tag2) => [
-        `${tag1.name}: Em cần củng cố thêm việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em nên luyện lại nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-    ],
-    '3': (tag1, tag2) => [
-        `${tag1.name}: Em cần luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em nên chú ý hơn khi xử lí nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-    ],
-    '4': (tag1, tag2, tag3) => [
-        `${tag1.name}: Em cần củng cố lại việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em nên luyện thêm các câu hỏi liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em cần chú ý hơn khi vận dụng kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-    ],
-    '5': (tag1, tag2) => [ // Cho incorrect_count 5-6 (max 3 ý)
-        `${tag1.name}: Em cần học lại và luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em nên bắt đầu từ các ví dụ đơn giản để củng cố việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `Em cần rèn thêm cách nhận diện dữ kiện và chọn kiến thức phù hợp khi làm bài.`
-    ],
-    '7': (tag1, tag2) => [ // Cho incorrect_count 7-9 (max 4 ý)
-        `${tag1.name}: Em cần bắt đầu củng cố lại cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em nên luyện thêm các câu cơ bản liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `Em cần chú ý hơn đến cách phân tích sự chuyển hóa giữa động năng, thế năng và cơ năng.`,
-        `Em nên rèn thêm cách đọc dữ kiện, xác định công thức và kiểm tra điều kiện áp dụng.`
-    ]
-};
+    const IMPROVE_TEMPLATES = {
+        '1': (tag1) => [
+            `${tag1.name}: Em nên rà soát thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+        ],
+        '2': (tag1, tag2) => [
+            `${tag1.name}: Em cần củng cố thêm việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em nên luyện lại nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+        ],
+        '3': (tag1, tag2) => [
+            `${tag1.name}: Em cần luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em nên chú ý hơn khi xử lí nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+        ],
+        '4': (tag1, tag2, tag3) => [
+            `${tag1.name}: Em cần củng cố lại việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em nên luyện thêm các câu hỏi liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `${tag3.name}: Em cần chú ý hơn khi vận dụng kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        ],
+        '5': (tag1, tag2) => [
+            `${tag1.name}: Em cần học lại và luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em nên bắt đầu từ các ví dụ đơn giản để củng cố việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `Em cần rèn thêm cách nhận diện dữ kiện và chọn kiến thức phù hợp khi làm bài.`
+        ],
+        '7': (tag1, tag2) => [
+            `${tag1.name}: Em cần bắt đầu củng cố lại cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+            `${tag2.name}: Em nên luyện thêm các câu cơ bản liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+            `Em cần chú ý hơn đến cách phân tích sự chuyển hóa giữa động năng, thế năng và cơ năng.`,
+            `Em nên rèn thêm cách đọc dữ kiện, xác định công thức và kiểm tra điều kiện áp dụng.`
+        ]
+    };
 
-
-function generateStrengthFeedback(levelResults, level, correctCount, total) {    
-    const feedbackHeader = "🌟 ";
-    const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
-
-    // --- 1. XỬ LÝ CÁC MỨC ĐIỂM ĐẶC BIỆT (Dùng cho mọi Level) ---
-    // Đúng đúng 1 câu: Lời khuyên khởi đầu
-    if (correctCount === 1) {
-        return feedbackHeader + "Em đã làm đúng được 1 câu rồi! Đây là khởi đầu tốt. Hãy xem kỹ lại các phần giải thích để củng cố kiến thức cho câu tiếp theo nhé!";
-    }
-    
-    // Đúng đúng 2 câu: Mẫu câu chủ nhân yêu cầu (Không dấu *)
-    if (correctCount === 2) {
-        // Nếu Level 0 lấy tag thật, Level khác lấy tên kiến thức chung
-        const getTag = (idx) => {
-            const data = (level === 0 && LEVEL_0_TAGS_DATA[idx]) ? LEVEL_0_TAGS_DATA[idx] : null;
-            return data ? { name: data.name, expl: data.explanation.charAt(0).toLowerCase() + data.explanation.slice(1) }
-                        : { name: "Kiến thức", expl: "các nội dung đã học trong cấp độ này" };
+    // Hàm lấy data thông minh, dùng cho mọi Level
+    function getLevelTagsData(level, entry) {
+        if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
+            return LEVEL_0_TAGS_DATA[entry.qIdx];
+        }
+        return { 
+            name: entry.topic, 
+            explanation: "nội dung về " + entry.topic.toLowerCase() 
         };
-        const tag1 = getTag(sortedCorrect[0].qIdx);
-        const tag2 = getTag(sortedCorrect[1].qIdx);
-        return feedbackHeader + 
-            `${tag1.name}: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.expl}.\n` +
-            `${tag2.name}: Em đã bắt đầu hình thành khả năng ${tag2.expl}.`;
     }
 
-    // --- 2. LOGIC RIÊNG CHO LEVEL 0 (Khi số câu đúng > 2) ---
-    if (level === 0) {
-        if (correctCount === 10) return feedbackHeader + "Xuất sắc! Em đã đạt điểm tuyệt đối Level 0.";
-        
-        let maxTags = (correctCount === 3) ? 2 : ((correctCount >= 4 && correctCount <= 8) ? 3 : 4);
-        const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => LEVEL_0_TAGS_DATA[entry.qIdx]);
-        const templates = STRENGTH_TEMPLATES[correctCount.toString()];
+    function generateStrengthFeedback(levelResults, level, correctCount, total) {    
+        const feedbackHeader = "🌟 ";
+        const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
 
+        if (correctCount === 0) return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
+        if (correctCount === 1) {
+            return feedbackHeader + "Em đã làm đúng được 1 câu rồi! Đây là khởi đầu tốt. Hãy xem kỹ lại các phần giải thích để củng cố kiến thức cho câu tiếp theo nhé!";
+        }
+        if (correctCount === 10) return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.`;
+        
+        let maxTags = (correctCount === 2 || correctCount === 3) ? 2 : ((correctCount >= 4 && correctCount <= 8) ? 3 : 4);
+        const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
+        
+        const templates = STRENGTH_TEMPLATES[correctCount.toString()];
         if (templates) {
             return feedbackHeader + templates(...selectedTagsData).map(item => `* ${item}`).join('\n');
         }
+
+        if (correctCount === total) {
+            return feedbackHeader + "Xuất sắc! Em đã đạt số điểm tuyệt đối. Nền tảng của em rất vững chắc!";
+        } else if (correctCount >= (total * 0.7)) {
+            return feedbackHeader + "Rất tốt! Em đã nắm vững hầu hết các nội dung trọng tâm của cấp độ này.";
+        } else {
+            return feedbackHeader + "Em đã hoàn thành cấp độ này. Kết quả hiện tại cho thấy em cần dành thêm thời gian ôn lại các phần lý thuyết trọng tâm.";
+        }
     }
 
-    // --- 3. LOGIC CHUNG CHO LEVEL 1, 2, 3 (Khi số câu đúng > 2) ---
-    if (correctCount === total) {
-        return feedbackHeader + "Xuất sắc! Em đã đạt số điểm tuyệt đối. Nền tảng của em rất vững chắc!";
-    } else if (correctCount >= (total * 0.7)) {
-        return feedbackHeader + "Rất tốt! Em đã nắm vững hầu hết các nội dung trọng tâm của cấp độ này.";
-    } else {
-        return feedbackHeader + "Em đã hoàn thành cấp độ này. Kết quả hiện tại cho thấy em cần dành thêm thời gian ôn lại các phần lý thuyết trọng tâm.";
-    }
-}
+    function generateImproveFeedback(levelResults, level) {
+        const wrongEntries = levelResults.filter(e => !e.correct);
+        const incorrectCount = wrongEntries.length;
 
-function generateImproveFeedback(levelResults) {
-    const wrongEntries = levelResults.filter(e => !e.correct);
-    const incorrectCount = wrongEntries.length;
+        if (incorrectCount === 0) {
+            return `Em chưa có nội dung cần cải thiện nổi bật ở Level ${level}. Em có thể tiếp tục chuyển sang thử thách tiếp theo.`;
+        }
+        
+        if (incorrectCount === 10) {
+            return `Em cần củng cố lại các kiến thức nền tảng của Level ${level}, đặc biệt là khái niệm cơ năng, động năng, thế năng và điều kiện bảo toàn cơ năng. Em nên học lại từng phần nhỏ, làm lại các câu cơ bản và chú ý mối liên hệ giữa động năng, thế năng và cơ năng. Kết quả này giúp em xác định rõ những nội dung cần rèn luyện trước khi chuyển sang Level tiếp theo.`;
+        }
 
-    if (incorrectCount === 0) {
-        return 'Em chưa có nội dung cần cải thiện nổi bật ở Level 0. Em có thể tiếp tục chuyển sang thử thách tiếp theo.';
-    }
-    
-    if (incorrectCount === 10) {
-        return "Em cần củng cố lại các kiến thức nền tảng của Level 0, đặc biệt là khái niệm cơ năng, động năng, thế năng và điều kiện bảo toàn cơ năng. Em nên học lại từng phần nhỏ, làm lại các câu cơ bản và chú ý mối liên hệ giữa động năng, thế năng và cơ năng. Kết quả này giúp em xác định rõ những nội dung cần rèn luyện trước khi chuyển sang Level tiếp theo.";
-    }
+        const sortedWrong = wrongEntries.sort((a, b) => b.qIdx - a.qIdx);
+        
+        let maxTagsForData = 2;
+        let templateKey = '2';
 
-    // Ưu tiên Tag của câu sai có số thứ tự lớn hơn (qIdx lớn hơn)
-    const sortedWrong = wrongEntries.sort((a, b) => b.qIdx - a.qIdx);
-    
-    let maxTagsForData;
-    let templateKey;
+        if (incorrectCount === 1) { maxTagsForData = 1; templateKey = '1'; }
+        else if (incorrectCount === 2) { maxTagsForData = 2; templateKey = '2'; }
+        else if (incorrectCount === 3) { maxTagsForData = 2; templateKey = '3'; }
+        else if (incorrectCount === 4) { maxTagsForData = 3; templateKey = '4'; }
+        else if (incorrectCount >= 5 && incorrectCount <= 6) { maxTagsForData = 2; templateKey = '5'; }
+        else if (incorrectCount >= 7 && incorrectCount <= 9) { maxTagsForData = 2; templateKey = '7'; }
 
-    if (incorrectCount === 1) {
-        maxTagsForData = 1;
-        templateKey = '1';
-    } else if (incorrectCount === 2) {
-        maxTagsForData = 2;
-        templateKey = '2';
-    } else if (incorrectCount === 3) {
-        maxTagsForData = 2; // Ưu tiên 2 câu có qIdx lớn nhất
-        templateKey = '3';
-    } else if (incorrectCount === 4) {
-        maxTagsForData = 3;
-        templateKey = '4';
-    } else if (incorrectCount >= 5 && incorrectCount <= 6) {
-        maxTagsForData = 2; // Ưu tiên 2 câu có qIdx lớn nhất cho template
-        templateKey = '5';
-    } else if (incorrectCount >= 7 && incorrectCount <= 9) {
-        maxTagsForData = 2; // Ưu tiên 2 câu có qIdx lớn nhất cho template
-        templateKey = '7';
-    } else {
-        return 'Đã có lỗi xảy ra trong quá trình tạo phản hồi cải thiện.';
+        const selectedTagsData = sortedWrong.slice(0, maxTagsForData).map(entry => getLevelTagsData(level, entry));
+        const templates = IMPROVE_TEMPLATES[templateKey];
+        
+        if (templates) {
+            const feedbackItems = templates(...selectedTagsData);
+            return feedbackItems.map(item => `* ${item}`).join('\n');
+        }
+        
+        const wrongTagsNames = selectedTagsData.map(data => data.name).join(', ');
+        return `Để tiến bộ hơn, em cần chú ý luyện thêm các dạng bài liên quan đến: ${wrongTagsNames}.`;
     }
 
-    const selectedTagsData = sortedWrong.slice(0, maxTagsForData).map(entry => LEVEL_0_TAGS_DATA[entry.qIdx]);
-    const templates = IMPROVE_TEMPLATES[templateKey];
-    
-    if (templates) {
-        const feedbackItems = templates(...selectedTagsData);
-        return feedbackItems.map(item => `* ${item}`).join('\n');
+    function generateNextLevelRecommendation(correctCount) {
+        const lvl = gameState.current_level; 
+        if (lvl === 0) {
+            if (correctCount <= 4) return { action: startLevel1, guidance:'Em nên củng cố thêm kiến thức nền tảng trước khi chuyển sang câu hỏi khó hơn.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố khái niệm cơ năng, động năng và thế năng', buttonText:'Luyện tập Level 1' };
+            else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+        } else if (lvl === 1) {
+            return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+        } else if (lvl === 2) {
+            return { action: startLevel3, guidance:'Tuyệt vời! Em có nền tảng khá tốt. Hãy thử sức với các câu hỏi vận dụng cao hơn.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
+        } else {
+            return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách! Cô tự hào về em lắm!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Chơi lại từ đầu' };
+        }
     }
-    
-    // Fallback if template key is missing
-    const wrongTagsNames = selectedTagsData.map(data => data.name).join(', ');
-    return `Để tiến bộ hơn, em cần chú ý luyện thêm các dạng bài liên quan đến: ${wrongTagsNames}.`;
-}
-
-function generateNextLevelRecommendation(correctCount) {
-    const lvl = gameState.current_level; 
-    
-    if (lvl === 0) {
-        if (correctCount <= 4) return { action: startLevel1, guidance:'Em nên củng cố thêm kiến thức nền tảng trước khi chuyển sang câu hỏi khó hơn.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố khái niệm cơ năng, động năng và thế năng', buttonText:'Luyện tập Level 1' };
-        else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
-    } else if (lvl === 1) {
-        return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
-    } else if (lvl === 2) {
-        return { action: startLevel3, guidance:'Tuyệt vời\! Em có nền tảng khá tốt. Hãy thử sức với các câu hỏi vận dụng cao hơn.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
-    } else {
-        return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách\! Cô tự hào về em lắm\!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Chơi lại từ đầu' };
-    }
-}
-
 
     async function endGame() {
         clearInterval(timerInterval);
@@ -865,15 +786,12 @@ function generateNextLevelRecommendation(correctCount) {
 
         if (gameState.completed_level === null || gameState.answered_count < currentQuestionSet.length) return;
 
-        // Xử lý tiêu đề Level
         const levelNames = ["Level 0", "Level 1", "Level 2", "Level 3"];
         const currentLvlName = levelNames[gameState.current_level];
         document.querySelector("#result-screen h2").textContent = "Hoàn thành " + currentLvlName + "!";
         
-        // Thông báo
         alert(` hoàn thành ${currentLvlName} `);
 
-        // Tính toán lại biến
         const levelResults = answerLog.filter(a => a.level === gameState.current_level);
         const correctCount = levelResults.filter(a => a.correct).length;
         const total = currentQuestionSet.length;
@@ -884,9 +802,8 @@ function generateNextLevelRecommendation(correctCount) {
         document.getElementById('score-display').textContent = `${correctCount}/${total}`;
         document.getElementById('accuracy-display').textContent = `${accuracy}%`;
         
-        // Gọi hàm Feedback mới với ĐỦ 4 THAM SỐ
         document.getElementById('strength-content').innerText = generateStrengthFeedback(levelResults, gameState.current_level, correctCount, total);
-        document.getElementById('improve-content').textContent = generateImproveFeedback(levelResults);
+        document.getElementById('improve-content').textContent = generateImproveFeedback(levelResults, gameState.current_level);
 
         const nextLevelData = generateNextLevelRecommendation(correctCount);
         document.getElementById('next-level-guidance').textContent = nextLevelData.guidance;
@@ -895,9 +812,8 @@ function generateNextLevelRecommendation(correctCount) {
         
         const nextBtn = document.getElementById('next-level-btn');
         nextBtn.textContent = `▶ ${nextLevelData.buttonText}`;
-        nextBtn.onclick = nextLevelData.action; // Gán đúng hàm đã sửa ở bước trước
+        nextBtn.onclick = nextLevelData.action;
 
-        // Render lại danh sách xem lại
         const reviewList = document.getElementById('review-list');
         reviewList.innerHTML = '';
         levelResults.forEach((entry, idx) => {
@@ -909,7 +825,6 @@ function generateNextLevelRecommendation(correctCount) {
             reviewList.appendChild(btn);
         });
 
-        // Lưu điểm
         const strengths = [], weaknesses = [];
         for (const [topic, s] of Object.entries(topicScores)) {
             if (s.total === 0) continue;
@@ -918,7 +833,7 @@ function generateNextLevelRecommendation(correctCount) {
         if (leaderboardData.length < 999) {
             await window.dataSdk.create({
                 player_name: playerName,
-                score: correctCount, // Lưu số câu đúng
+                score: correctCount,
                 completion_time: timer,
                 strengths: strengths.join(', '),
                 weaknesses: weaknesses.join(', '),
@@ -926,6 +841,7 @@ function generateNextLevelRecommendation(correctCount) {
             });
         }
     }
+
     function toggleReviewDetail(idx) {
         const entry = answerLog.filter(a => a.level === gameState.current_level)[idx];
         const q = currentQuestionSet[entry.qIdx];
@@ -973,10 +889,6 @@ function generateNextLevelRecommendation(correctCount) {
         renderQuestion();
         lucide.createIcons();
     }
-
-    function startLevel1() { startLevel(1, LEVEL_1_QUESTIONS); }
-    function startLevel2() { startLevel(2, LEVEL_2_QUESTIONS); }
-    function startLevel3() { startLevel(3, LEVEL_3_QUESTIONS); }
 
     function restartGame() { switchScreen('start-screen'); }
 
