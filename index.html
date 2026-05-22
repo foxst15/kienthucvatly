@@ -850,8 +850,8 @@ const LEVEL_2_QUESTIONS = [
     ],
     '3': (tag1, tag2, tag3) => [
         `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-        `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-        //`${tag3.name}: Em đã có những bước làm quen ban đầu với việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã có những bước làm quen ban đầu với việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
     ],
     '4': (tag1, tag2, tag3) => [
         `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
@@ -948,46 +948,43 @@ const IMPROVE_TEMPLATES = {
     };
 }
 
-            function generateStrengthFeedback(levelResults, level, correctCount, total) {    
-        const feedbackHeader = "🌟 ";
-        const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
+        function generateStrengthFeedback(levelResults, level, correctCount, total) {    
+    const feedbackHeader = "🌟 ";
+    const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
 
-        if (correctCount === 0) {
-            return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
-        }
-
-        // Gán templateKey, nếu đúng 10 điểm tuyệt đối thì mượn mẫu số 9 (4 thẻ) để khen cho hoành tráng
-        let templateKey = correctCount.toString();
-        if (correctCount === 10) templateKey = '9';
-
-        // Tự động phân bổ số thẻ lấy ra (maxTags) theo đúng templateKey
-        // Đã sửa lại: Điểm 2 và 3 chỉ lấy 2 thẻ. Từ 4 đến 8 lấy 3 thẻ.
-        let maxTags = 1;
-        if (templateKey === '2' || templateKey === '3') maxTags = 2;
-        else if (templateKey >= '4' && templateKey <= '8') maxTags = 3;
-        else if (templateKey === '9') maxTags = 4;
-
-        // Gắp data cho các thẻ
-        const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
-
-        // Áp dụng STRENGTH_TEMPLATES cho TẤT CẢ các Level
-        const templates = STRENGTH_TEMPLATES[templateKey];
-        
-        if (templates) {
-            const feedbackItems = templates(...selectedTagsData);
-            const feedbackList = feedbackItems.map(item => `* ${item}`).join('\n');
-            
-            // Nếu được điểm tuyệt đối thì khen câu đặc biệt trước, rồi in thẻ sau
-            if (correctCount === total) {
-                return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.\n` + feedbackList;
-            }
-            return feedbackHeader + "\n" + feedbackList;
-        }
-
-        // Fallback (Phòng hờ nếu không có template)
-        return feedbackHeader + `Em đã đạt được ${correctCount}/${total} điểm.`;
+    if (correctCount === 0) {
+        return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
     }
 
+    // Xử lý key cho template (tối đa là 9, vì template chỉ đến 9)
+    let templateKey = correctCount.toString();
+    if (correctCount > 9) templateKey = '9';
+
+    // Phân bổ số thẻ hiển thị (maxTags) theo kịch bản:
+    // 1 câu: 1 tag | 2-3 câu: 2 tags | 4-8 câu: 3 tags | 9+ câu: 4 tags
+    let maxTags = 1;
+    if (correctCount === 2 || correctCount === 3) maxTags = 2;
+    else if (correctCount >= 4 && correctCount <= 8) maxTags = 3;
+    else if (correctCount >= 9) maxTags = 4;
+
+    const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
+
+    const templates = STRENGTH_TEMPLATES[templateKey];
+    
+    if (templates) {
+        const feedbackItems = templates(...selectedTagsData);
+        const feedbackList = feedbackItems.map(item => `* ${item}`).join('\n');
+        
+        if (correctCount === total) {
+            // Hiệu ứng pháo hoa nếu tuyệt đối
+            if (typeof confetti === 'function') confetti();
+            return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.\n` + feedbackList;
+        }
+        return feedbackHeader + "\n" + feedbackList;
+    }
+
+    return feedbackHeader + `Em đã đạt được ${correctCount}/${total} điểm.`;
+}
 
     function generateImproveFeedback(levelResults, level) {
         const wrongEntries = levelResults.filter(e => !e.correct);
