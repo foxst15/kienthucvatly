@@ -150,19 +150,24 @@
 
     // 1. Theo dõi số lượng người Online
     const connectedRef = ref(db, ".info/connected");
+    const onlineUsersRef = ref(db, 'online_users');
+
     onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
-            const myConnectionsRef = push(ref(db, 'online_users'));
+            const myConnectionsRef = push(onlineUsersRef);
             // Tự động xóa node khi người dùng đóng trình duyệt
             onDisconnect(myConnectionsRef).remove();
             set(myConnectionsRef, true);
         }
     });
 
-    onValue(ref(db, 'online_users'), (snapshot) => {
+    // Cập nhật con số hiển thị lên màn hình
+    onValue(onlineUsersRef, (snapshot) => {
         const count = snapshot.size;
         const counter = document.getElementById('online-count');
-        if (counter) counter.innerText = count;
+        if (counter) {
+            counter.innerText = count; 
+        }
     });
 
     // 2. Giao tiếp với Game (Lưu điểm)
