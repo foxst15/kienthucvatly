@@ -333,22 +333,28 @@
         attempts = 0;
         currentDragDropAttempt = 0;
 
-        // Cập nhật bộ đếm và thanh tiến trình
-        document.getElementById('q-counter').textContent = `Câu ${currentQ + 1}/${currentQuestionSet.length}`;
-        document.getElementById('progress-bar').style.width = `${((currentQ + 1) / currentQuestionSet.length) * 100}%`;
+        // 1. Cập nhật bộ đếm và thanh tiến trình
+        const counterEl = document.getElementById('q-counter');
+        const progressEl = document.getElementById('progress-bar');
+        if (counterEl) counterEl.textContent = `Câu ${currentQ + 1}/${currentQuestionSet.length}`;
+        if (progressEl) progressEl.style.width = `${((currentQ) / currentQuestionSet.length) * 100}%`;
 
         document.getElementById('feedback-area').classList.add('hidden');
         document.getElementById('next-btn').classList.add('hidden');
         const area = document.getElementById('question-area');
 
+        // 2. Phân loại câu hỏi để render
         if (q.type === 'choice') {
             area.innerHTML = `
                 <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
-                <div class="space-y-3">${q.options.map((opt, i) => `
-                    <button onclick="checkChoice(${i})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all font-medium text-gray-700">
-                        ${String.fromCharCode(65 + i)}. ${opt}
-                    </button>`).join('')}
+                <div class="space-y-3">
+                    ${q.options.map((opt, i) => `
+                        <button onclick="checkChoice(${i})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all font-medium text-gray-700">
+                            ${String.fromCharCode(65 + i)}. ${opt}
+                        </button>
+                    `).join('')}
                 </div>`;
+
         } else if (q.type === 'fillin') {
             if (Array.isArray(q.answer)) {
                 const questionParts = q.question.split('[___]');
@@ -356,26 +362,34 @@
                 for (let i = 1; i < questionParts.length; i++) {
                     questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i];
                 }
-                area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
-                                  <button onclick="checkFillIn()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
+                area.innerHTML = `
+                    <p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
+                    <button onclick="checkFillIn()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
             } else {
-                area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${q.question.replace(/\[___\]/g, '<span class="inline-block border-b-2 border-orange-400 px-2 mx-1">[___]</span>')}</p>
-                                  <div class="flex gap-3"><input id="fill-input" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 outline-none text-lg" placeholder="Nhập đáp án...">
-                                  <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button></div>`;
+                area.innerHTML = `
+                    <p class="text-lg font-medium text-gray-700 mb-6">${q.question.replace(/\[___\]/g, '<span class="inline-block border-b-2 border-orange-400 px-2 mx-1">[___]</span>')}</p>
+                    <div class="flex gap-3">
+                        <input id="fill-input" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 outline-none text-lg" placeholder="Nhập đáp án...">
+                        <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>
+                    </div>`;
             }
+
         } else if (q.type === 'sorting') {
             area.innerHTML = `
                 <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
-                <div class="space-y-3">${q.statements.map((stmt, i) => `
-                    <div class="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
-                        <p class="font-medium text-gray-700 mb-3">${i + 1}. ${stmt}</p>
-                        <div class="flex gap-3">
-                            <button onclick="setSortingAnswer(${i}, true)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-green-700 bg-green-100 border-2 border-green-200 hover:bg-green-200 transition-all" data-answer="${i}" data-value="true">Đúng ✓</button>
-                            <button onclick="setSortingAnswer(${i}, false)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-red-700 bg-red-100 border-2 border-red-200 hover:bg-red-200 transition-all" data-answer="${i}" data-value="false">Sai ✗</button>
+                <div class="space-y-3">
+                    ${q.statements.map((stmt, i) => `
+                        <div class="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
+                            <p class="font-medium text-gray-700 mb-3">${i + 1}. ${stmt}</p>
+                            <div class="flex gap-3">
+                                <button onclick="setSortingAnswer(${i}, true)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-green-700 bg-green-100 border-2 border-green-200 hover:bg-green-200 transition-all" data-answer="${i}" data-value="true">Đúng ✓</button>
+                                <button onclick="setSortingAnswer(${i}, false)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-red-700 bg-red-100 border-2 border-red-200 hover:bg-red-200 transition-all" data-answer="${i}" data-value="false">Sai ✗</button>
+                            </div>
                         </div>
-                    </div>`).join('')}
+                    `).join('')}
                     <button onclick="checkSorting()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
                 </div>`;
+
         } else if (q.type === 'dragdrop') {
             const shuffled = [...q.pairs.map(p => p[1])].sort(() => Math.random() - 0.5);
             area.innerHTML = `
@@ -385,13 +399,14 @@
                         ${q.pairs.map((p, i) => `
                             <div class="p-3 rounded-xl bg-orange-50 font-medium">
                                 ${p[0]} 
-                                <span class="drop-zone inline-block ml-2 min-w-[100px] border-2 border-dashed border-orange-300 rounded-lg px-3 py-1 text-center text-sm text-gray-400" 
+                                <span class="drop-zone inline-block ml-2 min-w-[100px] border-2 border-dashed border-orange-300 rounded-lg px-3 py-1 text-center text-sm text-gray-400 cursor-pointer" 
                                       data-idx="${i}" 
                                       onclick="removeDrop(this)" 
                                       ondragover="event.preventDefault(); this.classList.add('drag-over')" 
                                       ondragleave="this.classList.remove('drag-over')" 
                                       ondrop="handleDrop(event, ${i})">kéo vào đây</span>
-                            </div>`).join('')}
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="space-y-3" id="drag-items">
                         ${shuffled.map(s => `
@@ -399,11 +414,14 @@
                                  draggable="true" 
                                  ondragstart="event.dataTransfer.setData('text', this.textContent); this.classList.add('dragging')" 
                                  ondragend="this.classList.remove('dragging')" 
-                                 style="background: #fed7aa">${s}</div>`).join('')}
+                                 style="background: #fed7aa">${s}</div>
+                        `).join('')}
                     </div>
                 </div>
-                <button onclick="checkDragDrop()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>`;
+                <button onclick="checkDragDrop()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
+            `;
             saveDragDropState();
+
         } else if (q.type === 'slider') {
             area.innerHTML = `
                 <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
@@ -416,15 +434,14 @@
                     <button onclick="checkSlider()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
                 </div>`;
         }
+        lucide.createIcons();
     }
 
 
     function updateSliderDisplay() {
-        document.getElementById('slider-display').textContent = document.getElementById('slider-input').value;
+        const val = document.getElementById('slider-input').value;
+        document.getElementById('slider-display').textContent = val;
     }
-
-    let dragDropInitialState = null;
-    let currentDragDropAttempt = 0;
 
     function saveDragDropState() {
         const zones = document.querySelectorAll('.drop-zone');
@@ -468,8 +485,13 @@
         e.preventDefault();
         const zone = e.target.closest('.drop-zone');
         if (!zone) return; 
-
         const text = e.dataTransfer.getData('text');
+        
+        // Nếu ô đã có chữ, gỡ chữ cũ ra trước
+        if (zone.textContent !== "kéo vào đây") {
+            removeDrop(zone);
+        }
+
         zone.textContent = text;
         zone.classList.remove('drag-over');
         zone.classList.add('bg-orange-100');
@@ -478,19 +500,15 @@
     }
 
    function removeDrop(el) {
-        // Lấy lại text và bỏ vào lại ô chứa các thẻ ban đầu
+        if (el.textContent === "kéo vào đây") return;
         const text = el.textContent;
         const dragItemsContainer = document.getElementById('drag-items');
-        
-        // Tìm thẻ tương ứng trong danh sách gốc và hiện lại nó
         const originalItems = dragItemsContainer.children;
         for (let item of originalItems) {
             if (item.textContent === text) {
-                item.style.display = 'block'; // Hiện lại thẻ
+                item.style.display = 'block';
             }
         }
-        
-        // Xóa text khỏi ô đã thả
         el.textContent = "kéo vào đây";
         el.classList.remove('bg-orange-100');
     }
@@ -1148,6 +1166,8 @@
     }
 
     function startLevel(levelNum, questionSet) {
+        answerLog = []; // Dọn sạch lịch sử câu trả lời cũ!
+        topicScores = {}; // Reset điểm số topic
         currentQ = 0; attempts = 0; correctFirst = 0; timer = 0; isQuestionAnswered = false;
         gameState = { completed_level: null, answered_count: 0, current_level: levelNum };
         sortingAnswers = {};
