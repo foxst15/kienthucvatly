@@ -93,7 +93,7 @@
      <p id="accuracy-display" class="text-4xl font-bold text-purple-600"></p>
     </div>
    </div>
-   
+  
    <div class="w-full bg-green-50 rounded-2xl shadow p-5 mb-4 border border-green-200">
     <p data-template-id="strength-label" class="canva-text font-bold text-green-700 mb-2">💪 Điểm mạnh của em</p>
     <p id="strength-content" class="text-gray-700 text-sm whitespace-pre-wrap"></p>
@@ -854,76 +854,90 @@
 };
 
     const STRENGTH_TEMPLATES = {
-        '2': (tag1, tag2) => [
-            `${tag1.name}: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã bắt đầu hình thành khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-        ],
-        '3': (tag1, tag2) => [
-            `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-        ],
-        '4': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã bước đầu biết vận dụng kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}, đây là điểm tựa để tiếp tục củng cố ở Level 1.`
-        ],
-        '5': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã có nền tảng ban đầu để tiếp tục rèn luyện khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã bước đầu nhận diện được kiến thức trọng tâm thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-        ],
-        '6': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em đã làm đúng một số câu hỏi liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã bước đầu biết liên hệ kiến thức với tình huống cụ thể thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã có nền tảng ban đầu để tiếp tục rèn cách phân tích và vận dụng nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-        ],
-        '7': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em đã bước đầu vận dụng được kiến thức để ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-        ],
-        '8': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em đã làm tốt nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã nhận diện tốt cách xử lí kiến thức thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã vận dụng khá tốt kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-        ],
-        '9': (tag1, tag2, tag3, tag4) => [
-            `${tag1.name}: Em đã làm tốt phần kiến thức liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em đã vận dụng khá tốt kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em đã nhận diện tốt nội dung cốt lõi thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`,
-            `${tag4.name}: Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag4.explanation.charAt(0).toLowerCase() + tag4.explanation.slice(1)}`
-        ]
-    };
+    '1': (tag1) => [
+        `${tag1.name}: Em đã nỗ lực làm quen với nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ],
+    '2': (tag1, tag2) => [
+        `${tag1.name}: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã bắt đầu hình thành khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '3': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã có những bước làm quen ban đầu với việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '4': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã bước đầu biết vận dụng kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}, đây là điểm tựa để tiếp tục củng cố ở Level 1.`
+    ],
+    '5': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã có nền tảng ban đầu để tiếp tục rèn luyện khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã bước đầu nhận diện được kiến thức trọng tâm thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '6': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã làm đúng một số câu hỏi liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã bước đầu biết liên hệ kiến thức với tình huống cụ thể thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã có nền tảng ban đầu để tiếp tục rèn cách phân tích và vận dụng nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '7': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã bước đầu vận dụng được kiến thức để ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '8': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em đã làm tốt nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã nhận diện tốt cách xử lí kiến thức thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã vận dụng khá tốt kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '9': (tag1, tag2, tag3, tag4) => [
+        `${tag1.name}: Em đã làm tốt phần kiến thức liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em đã vận dụng khá tốt kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em đã nhận diện tốt nội dung cốt lõi thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`,
+        `${tag4.name}: Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag4.explanation.charAt(0).toLowerCase() + tag4.explanation.slice(1)}`
+    ]
+};
 
-    const IMPROVE_TEMPLATES = {
-        '1': (tag1) => [
-            `${tag1.name}: Em nên rà soát thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
-        ],
-        '2': (tag1, tag2) => [
-            `${tag1.name}: Em cần củng cố thêm việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em nên luyện lại nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-        ],
-        '3': (tag1, tag2) => [
-            `${tag1.name}: Em cần luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em nên chú ý hơn khi xử lí nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
-        ],
-        '4': (tag1, tag2, tag3) => [
-            `${tag1.name}: Em cần củng cố lại việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em nên luyện thêm các câu hỏi liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `${tag3.name}: Em cần chú ý hơn khi vận dụng kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
-        ],
-        '5': (tag1, tag2) => [
-            `${tag1.name}: Em cần học lại và luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em nên bắt đầu từ các ví dụ đơn giản để củng cố việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `Em cần rèn thêm cách nhận diện dữ kiện và chọn kiến thức phù hợp khi làm bài.`
-        ],
-        '7': (tag1, tag2) => [
-            `${tag1.name}: Em cần bắt đầu củng cố lại cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
-            `${tag2.name}: Em nên luyện thêm các câu cơ bản liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-            `Em cần chú ý hơn đến cách phân tích sự chuyển hóa giữa động năng, thế năng và cơ năng.`,
-            `Em nên rèn thêm cách đọc dữ kiện, xác định công thức và kiểm tra điều kiện áp dụng.`
-        ]
-    };
+const IMPROVE_TEMPLATES = {
+    '1': (tag1) => [
+        `${tag1.name}: Em nên rà soát thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ],
+    '2': (tag1, tag2) => [
+        `${tag1.name}: Em cần củng cố thêm việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên luyện lại nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '3': (tag1, tag2) => [
+        `${tag1.name}: Em cần luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên chú ý hơn khi xử lí nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '4': (tag1, tag2, tag3) => [
+        `${tag1.name}: Em cần củng cố lại việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên luyện thêm các câu hỏi liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `${tag3.name}: Em cần chú ý hơn khi vận dụng kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '5': (tag1, tag2) => [
+        `${tag1.name}: Em cần học lại và luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên bắt đầu từ các ví dụ đơn giản để củng cố việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `Em cần rèn thêm cách nhận diện dữ kiện và chọn kiến thức phù hợp khi làm bài.`
+    ],
+    '6': (tag1, tag2) => [
+        `${tag1.name}: Em cần rèn luyện thêm sự cẩn thận để tránh nhầm lẫn khi ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên chú ý kiểm tra lại các bước thực hiện nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '7': (tag1, tag2) => [
+        `${tag1.name}: Em cần bắt đầu củng cố lại cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `${tag2.name}: Em nên luyện thêm các câu cơ bản liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `Em cần chú ý hơn đến cách phân tích sự chuyển hóa giữa động năng, thế năng và cơ năng.`,
+        `Em nên rèn thêm cách đọc dữ kiện, xác định công thức và kiểm tra điều kiện áp dụng.`
+    ],
+    '8': (tag1) => [
+        `${tag1.name}: Em nên tối ưu hóa thời gian và cẩn thận với các bẫy nhỏ khi ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ],
+    '9': (tag1) => [
+        `${tag1.name}: Em cần duy trì phong độ và luyện thêm kỹ năng xử lý các tình huống phức tạp liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ]
+};
 
     function getLevelTagsData(level, entry) {
         // 1. Xử lý riêng cho Level 0 theo cấu trúc ID (0, 1, 2...)
@@ -957,7 +971,7 @@
         // Cập nhật để điểm tuyệt đối tự động khớp với tổng số câu (total)
         if (correctCount === total) return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.`;
         
-        let maxTags = (correctCount === 2 || correctCount === 3) ? 2 : ((correctCount >= 4 && correctCount <= 8) ? 3 : 4);
+        let maxTags = (correctCount === 2) ? 2 : ((correctCount >= 3 && correctCount <= 8) ? 3 : 4);
         const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
         
         // CHỈ dùng template gán sẵn cho Level 0
