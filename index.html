@@ -896,17 +896,23 @@
         return `Để tiến bộ hơn, em cần chú ý luyện thêm các dạng bài liên quan đến: ${wrongTagsNames}.`;
     }
 
-    function generateNextLevelRecommendation(correctCount) {
+    function generateNextLevelRecommendation(correctCount, total) {
         const lvl = gameState.current_level; 
+        const passRatio = correctCount / total;
+        const isPassed = passRatio >= 0.5; // Đúng từ 50% trở lên mới được qua màn
+
         if (lvl === 0) {
-            if (correctCount <= 4) return { action: startLevel1, guidance:'Em nên củng cố thêm kiến thức nền tảng trước khi chuyển sang câu hỏi khó hơn.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố khái niệm cơ năng, động năng và thế năng', buttonText:'Luyện tập Level 1' };
-            else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+            if (!isPassed) return { action: () => startLevel(0, LEVEL_0_QUESTIONS), guidance:'Điểm số chưa đạt, em nên củng cố thêm kiến thức nền tảng trước khi đi tiếp nhé.', levelName:'🔄 Luyện lại Level 0', description:'Ôn tập khái niệm cơ năng', buttonText:'Chơi lại Level 0' };
+            else return { action: startLevel1, guidance:'Tuyệt vời! Em đã sẵn sàng cho thử thách tiếp theo.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố công thức và tính toán', buttonText:'Luyện tập Level 1' };
         } else if (lvl === 1) {
-            return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+            if (!isPassed) return { action: startLevel1, guidance:'Em cần làm quen thêm với các công thức cơ bản. Hãy thử lại Level 1 nhé.', levelName:'🔄 Luyện lại Level 1', description:'Rèn luyện kỹ năng tính toán', buttonText:'Chơi lại Level 1' };
+            else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
         } else if (lvl === 2) {
-            return { action: startLevel3, guidance:'Tuyệt vời! Em có nền tảng khá tốt. Hãy thử sức với các câu hỏi vận dụng cao hơn.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
+            if (!isPassed) return { action: startLevel2, guidance:'Các tình huống ở Level 2 khá đa dạng, em nên rèn luyện thêm lần nữa nhé.', levelName:'🔄 Luyện lại Level 2', description:'Phân tích hiện tượng', buttonText:'Chơi lại Level 2' };
+            else return { action: startLevel3, guidance:'Tuyệt vời! Em có nền tảng khá tốt. Hãy thử sức với các câu hỏi vận dụng cao hơn.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
         } else {
-            return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách! Cô tự hào về em lắm!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Chơi lại từ đầu' };
+            if (!isPassed) return { action: startLevel3, guidance:'Level 3 là thử thách khó, em đừng nản chí mà hãy thử lại nhé!', levelName:'🔄 Luyện lại Level 3', description:'Chinh phục vận dụng cao', buttonText:'Chơi lại Level 3' };
+            else return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách! Cô tự hào về em lắm!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Về màn hình chính' };
         }
     }
 
@@ -935,7 +941,7 @@
         document.getElementById('strength-content').innerText = generateStrengthFeedback(levelResults, gameState.current_level, correctCount, total);
         document.getElementById('improve-content').textContent = generateImproveFeedback(levelResults, gameState.current_level);
 
-        const nextLevelData = generateNextLevelRecommendation(correctCount);
+        const nextLevelData = generateNextLevelRecommendation(correctCount, total);
         document.getElementById('next-level-guidance').textContent = nextLevelData.guidance;
         document.getElementById('next-level-name').textContent = nextLevelData.levelName;
         document.getElementById('next-level-description').textContent = nextLevelData.description;
