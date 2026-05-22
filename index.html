@@ -51,10 +51,19 @@
   <div id="start-screen" class="screen active flex-col items-center justify-center text-center fade-in">
    <div class="text-7xl mb-6">⚡</div>
    <h1 class="text-3xl font-bold mb-2 text-orange-800">Physics Quest</h1>
-   <p class="mb-8 text-orange-600">Thử thách Vật lí </p>
+   <p class="mb-6 text-orange-600">Thử thách Vật lí </p>
+   
    <input id="player-name-input" class="w-full max-w-xs px-4 py-3 rounded-xl border-2 border-orange-300 focus:border-orange-500 outline-none text-center text-lg mb-4" placeholder="Nhập tên của bạn...">
    <button class="w-full max-w-xs px-8 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all hover:scale-105 bg-gradient-to-r from-orange-400 to-red-400 text-white" onclick="startGame()">Bắt đầu chơi</button>
-   <button class="mt-4 px-6 py-2 rounded-lg font-semibold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all text-sm" onclick="showLeaderboardFromStart()">🏆 Bảng xếp hạng</button>
+   <button class="mt-4 w-full max-w-xs px-6 py-2 rounded-lg font-semibold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all text-sm" onclick="showLeaderboardFromStart()">🏆 Bảng xếp hạng</button>
+   
+   <div class="mt-8 flex items-center justify-center gap-2 text-emerald-700 bg-emerald-100 px-5 py-2 rounded-full font-bold shadow-sm border border-emerald-200">
+        <span class="relative flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+        Đang Online: <span id="online-count">0</span>
+   </div>
   </div>
   
   <div id="question-screen" class="screen flex-col fade-in">
@@ -120,29 +129,71 @@
    <div id="lb-list" class="space-y-3"></div>
    <button class="mt-6 px-6 py-3 rounded-xl font-bold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all self-center" onclick="restartGame()">← Quay lại</button>
   </div>
-  
-  <script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyArKIBD9RWIOhNgPrPLKtPHn1EsQUHjmE8",
+        authDomain: "score-57210.firebaseapp.com",
+        databaseURL: "https://score-57210-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "score-57210",
+        storageBucket: "score-57210.firebasestorage.app",
+        messagingSenderId: "425618398285",
+        appId: "1:425618398285:web:47eccf49c844df2e865004"
+    };
+
+    // Khởi tạo Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 1. Theo dõi số lượng người Online
+    const connectedRef = ref(db, ".info/connected");
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            const myConnectionsRef = push(ref(db, 'online_users'));
+            // Tự động xóa node khi người dùng đóng trình duyệt
+            onDisconnect(myConnectionsRef).remove();
+            set(myConnectionsRef, true);
+        }
+    });
+
+    onValue(ref(db, 'online_users'), (snapshot) => {
+        const count = snapshot.size;
+        const counter = document.getElementById('online-count');
+        if (counter) counter.innerText = count;
+    });
+
+    // 2. Giao tiếp với Game (Lưu điểm)
     window.dataSdk = {
-        init: async function(handler) {
-            setTimeout(() => {
-                if (handler && handler.onDataChanged) {
-                    handler.onDataChanged([
-                        { player_name: "BÉ LÔI", score: 100, completion_time: 45 },
-                        { player_name: "FoxST", score: 95, completion_time: 50 },
-                        { player_name: "Bạn Tú", score: 80, completion_time: 60 }
-                    ]);
-                }
-            }, 100);
-            return { isOk: true };
-        },
         create: async function(data) {
-            leaderboardData.push(data);
-            if (typeof dataHandler !== 'undefined' && dataHandler.onDataChanged) {
-                dataHandler.onDataChanged(leaderboardData);
-            }
+            await push(ref(db, 'leaderboard'), data);
             return { isOk: true };
         }
     };
+
+    // 3. Lắng nghe cập nhật Bảng xếp hạng Realtime
+    onValue(ref(db, 'leaderboard'), (snapshot) => {
+        const data = [];
+        snapshot.forEach(child => { data.push(child.val()); });
+        // Sắp xếp: Ưu tiên điểm cao, nếu điểm bằng nhau ưu tiên thời gian thấp
+        data.sort((a,b) => b.score - a.score || a.completion_time - b.completion_time);
+        
+        if (typeof window.updateLeaderboardData === 'function') {
+            window.updateLeaderboardData(data);
+        }
+    });
+  </script>
+
+  <script>
+    // Hàm nhận dữ liệu Realtime từ Firebase
+    function updateLeaderboardData(newData) {
+        leaderboardData = newData;
+        if (document.getElementById('leaderboard-screen').classList.contains('active')) {
+            renderLeaderboard();
+        }
+    }
 
     let audioCtx = null;
     function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -319,7 +370,10 @@
         const items = document.getElementById('drag-items');
         dragDropInitialState = {
             zones: Array.from(zones).map(z => z.textContent),
-            items: Array.from(items.children).map(item => ({ text: item.textContent, html: item.outerHTML }))
+            items: Array.from(items.children).map(item => ({
+                text: item.textContent,
+                html: item.outerHTML
+            }))
         };
     }
 
@@ -327,14 +381,24 @@
         if (!dragDropInitialState) return;
         const zones = document.querySelectorAll('.drop-zone');
         const dragItemsContainer = document.getElementById('drag-items');
-        zones.forEach((z, i) => { z.textContent = dragDropInitialState.zones[i]; z.classList.remove('bg-orange-100', 'drag-over'); });
+        
+        zones.forEach((z, i) => {
+            z.textContent = dragDropInitialState.zones[i];
+            z.classList.remove('bg-orange-100', 'drag-over');
+        });
+        
         dragItemsContainer.innerHTML = '';
         dragDropInitialState.items.forEach(itemData => {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = itemData.html;
             const newItem = tempDiv.firstElementChild;
-            newItem.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text', this.textContent); this.classList.add('dragging'); });
-            newItem.addEventListener('dragend', function() { this.classList.remove('dragging'); });
+            newItem.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text', this.textContent);
+                this.classList.add('dragging');
+            });
+            newItem.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
             dragItemsContainer.appendChild(newItem);
         });
     }
@@ -343,6 +407,7 @@
         e.preventDefault();
         const zone = e.target.closest('.drop-zone');
         if (!zone) return; 
+
         const text = e.dataTransfer.getData('text');
         zone.textContent = text;
         zone.classList.remove('drag-over');
@@ -367,17 +432,17 @@
             fb.innerHTML = `<p class="font-bold text-green-700 mb-3">🎉 TUYỆT VỜI! EM ĐÃ TRẢ LỜI ĐÚNG RỒI</p><p class="text-green-600 text-sm whitespace-pre-wrap">${formattedMsg}</p>`;
             correctSound();
             
-            // 🎆 BÉ LÔI BẮN PHÁO HOA NÈ!
+            // 🔥 BÉ LÔI BẮN PHÁO HOA NÈ!
             if (typeof confetti === 'function') {
                 confetti({
-                    particleCount: 150, // Số lượng pháo hoa
-                    spread: 80,         // Độ rải rác
-                    origin: { y: 0.6 }, // Vị trí bắn (60% màn hình)
+                    particleCount: 150, 
+                    spread: 80,         
+                    origin: { y: 0.6 }, 
                     colors: ['#f97316', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'],
                     zIndex: 9999
                 });
             }
-            
+
             document.getElementById('question-area').classList.add('bounce');
             setTimeout(() => document.getElementById('question-area').classList.remove('bounce'), 400);
         } else {
@@ -408,9 +473,16 @@
         if (correct) topicScores[q.topic].correct++;
         gameState.answered_count++;
         answerLog.push({
-            qIdx: currentQ, id: q.id, level: q.level, question_set: q.question_set,
-            question: q.question, topic: q.topic, tags: q.tags, type: q.type,
-            userAnswer: userAnswer, correct: correct
+            qIdx: currentQ,
+            id: q.id,
+            level: q.level,
+            question_set: q.question_set,
+            question: q.question,
+            topic: q.topic,
+            tags: q.tags,
+            type: q.type,
+            userAnswer: userAnswer,
+            correct: correct
         });
     }
 
@@ -460,8 +532,11 @@
         const q = currentQuestionSet[currentQ];
         attempts++;
         const isLevel1 = gameState.current_level === 1;
+        
         let allCorrect = true;
-        for (let i = 0; i < q.answers.length; i++) { if (sortingAnswers[i] !== q.answers[i]) allCorrect = false; }
+        for (let i = 0; i < q.answers.length; i++) {
+            if (sortingAnswers[i] !== q.answers[i]) allCorrect = false;
+        }
         
         if (allCorrect) {
             isQuestionAnswered = true;
@@ -496,6 +571,7 @@
         const q = currentQuestionSet[currentQ];
         attempts++;
         const isLevel1 = gameState.current_level === 1;
+        
         let allCorrect = false;
         let userAnswerRecord = '';
 
@@ -527,7 +603,9 @@
                     if (Array.isArray(q.answer)) {
                         const questionParts = q.question.split('[___]');
                         let questionHTML = questionParts[0];
-                        for (let i = 1; i < questionParts.length; i++) { questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i]; }
+                        for (let i = 1; i < questionParts.length; i++) {
+                            questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i];
+                        }
                         area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
                         <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
                     } else {
@@ -552,6 +630,7 @@
         const val = parseInt(document.getElementById('slider-input').value);
         attempts++;
         const isLevel1 = gameState.current_level === 1;
+        
         if (val === q.correct_answer) {
             isQuestionAnswered = true;
             score += attempts === 1 ? 10 : 5;
@@ -586,8 +665,10 @@
         let allCorrect = true;
         const userMatches = [];
         zones.forEach((z, i) => { const text = z.textContent.trim(); userMatches.push(text); if (text !== q.pairs[i][1]) allCorrect = false; });
+        
         attempts++;
         const isLevel1 = gameState.current_level === 1;
+        
         if (allCorrect) {
             isQuestionAnswered = true;
             score += attempts === 1 ? 10 : 5;
@@ -599,7 +680,11 @@
         } else {
             currentDragDropAttempt++;
             if (currentDragDropAttempt === 1) {
-                if (isLevel1) { showFeedback(false, q.hint1, true); } else { showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1); }
+                if (isLevel1) {
+                    showFeedback(false, q.hint1, true);
+                } else {
+                    showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+                }
                 setTimeout(() => { resetDragDrop(); }, 600);
             } else if (currentDragDropAttempt >= 2) {
                 isQuestionAnswered = true;
@@ -619,6 +704,10 @@
             renderQuestion();
         }
     }
+
+    // =================================================================
+    // LOGIC TỰ ĐỘNG HÓA FEEDBACK (Áp dụng cho mọi Level)
+    // =================================================================
 
     const LEVEL_0_TAGS_DATA = {
         0: { name: "Khái niệm cơ năng", explanation: "Nhận biết cơ năng là đại lượng gắn với động năng và thế năng của vật." },
@@ -705,7 +794,6 @@
         ]
     };
 
-    // Hàm lấy data thông minh, dùng cho mọi Level
     function getLevelTagsData(level, entry) {
         if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
             return LEVEL_0_TAGS_DATA[entry.qIdx];
@@ -843,7 +931,9 @@
             if (s.total === 0) continue;
             if (s.correct / s.total >= 0.7) strengths.push(topic); else weaknesses.push(topic);
         }
-        if (leaderboardData.length < 999) {
+        
+        // ĐẨY DỮ LIỆU LÊN FIREBASE QUA SDK ĐÃ KHỞI TẠO Ở TRÊN
+        if (typeof window.dataSdk !== 'undefined') {
             await window.dataSdk.create({
                 player_name: playerName,
                 score: correctCount,
