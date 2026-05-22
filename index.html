@@ -864,7 +864,7 @@
     '3': (tag1, tag2, tag3) => [
         `${tag1.name}: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
         `${tag2.name}: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
-        `${tag3.name}: Em đã có những bước làm quen ban đầu với việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+        //`${tag3.name}: Em đã có những bước làm quen ban đầu với việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
     ],
     '4': (tag1, tag2, tag3) => [
         `${tag1.name}: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
@@ -961,7 +961,7 @@ const IMPROVE_TEMPLATES = {
     };
 }
 
-        function generateStrengthFeedback(levelResults, level, correctCount, total) {    
+            function generateStrengthFeedback(levelResults, level, correctCount, total) {    
         const feedbackHeader = "🌟 ";
         const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
 
@@ -974,9 +974,10 @@ const IMPROVE_TEMPLATES = {
         if (correctCount === 10) templateKey = '9';
 
         // Tự động phân bổ số thẻ lấy ra (maxTags) theo đúng templateKey
+        // Đã sửa lại: Điểm 2 và 3 chỉ lấy 2 thẻ. Từ 4 đến 8 lấy 3 thẻ.
         let maxTags = 1;
-        if (templateKey === '2') maxTags = 2;
-        else if (templateKey >= '3' && templateKey <= '8') maxTags = 3;
+        if (templateKey === '2' || templateKey === '3') maxTags = 2;
+        else if (templateKey >= '4' && templateKey <= '8') maxTags = 3;
         else if (templateKey === '9') maxTags = 4;
 
         // Gắp data cho các thẻ
@@ -999,6 +1000,7 @@ const IMPROVE_TEMPLATES = {
         // Fallback (Phòng hờ nếu không có template)
         return feedbackHeader + `Em đã đạt được ${correctCount}/${total} điểm.`;
     }
+
 
     function generateImproveFeedback(levelResults, level) {
         const wrongEntries = levelResults.filter(e => !e.correct);
