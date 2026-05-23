@@ -793,15 +793,6 @@
         }
     }
 
-    function nextQuestion() {
-        currentQ++;
-        if (currentQ >= currentQuestionSet.length) {
-            gameState.completed_level = gameState.current_level;
-            ();
-        } else {
-            renderQuestion();
-        }
-    }
 
     // =================================================================
     // LOGIC TỰ ĐỘNG HÓA FEEDBACK (Áp dụng cho mọi Level)
