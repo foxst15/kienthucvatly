@@ -1091,70 +1091,76 @@ const IMPROVE_TEMPLATES = {
     }
 
     async function endGame() {
-        clearInterval(timerInterval);
-        document.getElementById('progress-bar').style.width = '100%';
+    clearInterval(timerInterval);
+    document.getElementById('progress-bar').style.width = '100%';
 
-        if (gameState.completed_level === null || gameState.answered_count < currentQuestionSet.length) return;
+    if (gameState.completed_level === null || gameState.answered_count < currentQuestionSet.length) return;
 
-        const levelNames = ["Level 0", "Level 1", "Level 2", "Level 3"];
-        const currentLvlName = levelNames[gameState.current_level];
-        document.querySelector("#result-screen h2").textContent = "Hoàn thành " + currentLvlName + "!";
-        
-        alert(` hoàn thành ${currentLvlName} `);
+    const levelNames = ["Level 0", "Level 1", "Level 2", "Level 3"];
+    const currentLvlName = levelNames[gameState.current_level];
+    document.querySelector("#result-screen h2").textContent = "Hoàn thành " + currentLvlName + "!";
+    
+    alert(`Hoàn thành ${currentLvlName}!`);
 
-        const levelResults = answerLog.filter(a => a.level === gameState.current_level);
-        const correctCount = levelResults.filter(a => a.correct).length;
-        const total = currentQuestionSet.length;
-        const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    const levelResults = answerLog.filter(a => a.level === gameState.current_level);
+    const correctCount = levelResults.filter(a => a.correct).length;
+    const total = currentQuestionSet.length;
+    const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
 
-        switchScreen('result-screen');
+    switchScreen('result-screen');
+    document.getElementById('score-display').textContent = `${correctCount}/${total}`;
+    document.getElementById('accuracy-display').textContent = `${accuracy}%`;
+    
+    document.getElementById('strength-content').innerHTML = generateStrengthFeedback(levelResults, gameState.current_level, correctCount, total);
+    document.getElementById('improve-content').innerHTML = generateImproveFeedback(levelResults, gameState.current_level);
 
-        document.getElementById('score-display').textContent = `${correctCount}/${total}`;
-        document.getElementById('accuracy-display').textContent = `${accuracy}%`;
-        
-        // BÉ LÔI ĐÃ ĐỔI THÀNH innerHTML CHỖ NÀY NÈ
-        document.getElementById('strength-content').innerHTML = generateStrengthFeedback(levelResults, gameState.current_level, correctCount, total);
-        document.getElementById('improve-content').innerHTML = generateImproveFeedback(levelResults, gameState.current_level);
+    const nextLevelData = generateNextLevelRecommendation(correctCount, total);
+    document.getElementById('next-level-guidance').textContent = nextLevelData.guidance;
+    document.getElementById('next-level-name').textContent = nextLevelData.levelName;
+    document.getElementById('next-level-description').textContent = nextLevelData.description;
+    
+    const nextBtn = document.getElementById('next-level-btn');
+    nextBtn.textContent = `▶ ${nextLevelData.buttonText}`;
+    nextBtn.onclick = nextLevelData.action;
 
-        const nextLevelData = generateNextLevelRecommendation(correctCount, total);
-        document.getElementById('next-level-guidance').textContent = nextLevelData.guidance;
-        document.getElementById('next-level-name').textContent = nextLevelData.levelName;
-        document.getElementById('next-level-description').textContent = nextLevelData.description;
-        
-        const nextBtn = document.getElementById('next-level-btn');
-        nextBtn.textContent = `▶ ${nextLevelData.buttonText}`;
-        nextBtn.onclick = nextLevelData.action;
+    const reviewList = document.getElementById('review-list');
+    reviewList.innerHTML = '';
+    levelResults.forEach((entry, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full text-left p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all border-l-4 ' + (entry.correct ? 'border-green-500' : 'border-red-500');
+        btn.innerHTML = `<div class="flex items-center justify-between"><span><span class="${entry.correct ? 'text-green-600' : 'text-red-600'} font-bold">${entry.correct ? '✓' : '✗'}</span> Câu ${idx+1} <span class="text-xs text-gray-400">[${entry.tags.join(', ')}]</span></span><span class="text-sm text-gray-500">${entry.correct ? 'Đúng' : 'Sai'}</span></div>`;
+        btn.onclick = () => toggleReviewDetail(idx);
+        reviewList.appendChild(btn);
+    });
 
-        const reviewList = document.getElementById('review-list');
-        reviewList.innerHTML = '';
-        levelResults.forEach((entry, idx) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'w-full text-left p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all border-l-4 ' + (entry.correct ? 'border-green-500' : 'border-red-500');
-            btn.innerHTML = `<div class="flex items-center justify-between"><span><span class="${entry.correct ? 'text-green-600' : 'text-red-600'} font-bold">${entry.correct ? '✓' : '✗'}</span> Câu ${idx+1} <span class="text-xs text-gray-400">[${entry.tags.join(', ')}]</span></span><span class="text-sm text-gray-500">${entry.correct ? 'Đúng' : 'Sai'}</span></div>`;
-            btn.onclick = () => toggleReviewDetail(idx);
-            reviewList.appendChild(btn);
-        });
-
-        const strengths = [], weaknesses = [];
-        for (const [topic, s] of Object.entries(topicScores)) {
-            if (s.total === 0) continue;
-            if (s.correct / s.total >= 0.7) strengths.push(topic); else weaknesses.push(topic);
-        }
-        
-        // ĐẨY DỮ LIỆU LÊN FIREBASE QUA SDK ĐÃ KHỞI TẠO Ở TRÊN
-        if (typeof window.dataSdk !== 'undefined') {
-            await window.dataSdk.create({
-                player_name: playerName,
-                score: correctCount,
-                completion_time: timer,
-                strengths: strengths.join(', '),
-                weaknesses: weaknesses.join(', '),
-                date_played: new Date().toISOString()
-            });
-        }
+    // Tính toán dữ liệu
+    const strengths = [], weaknesses = [];
+    for (const [topic, s] of Object.entries(topicScores)) {
+        if (s.total === 0) continue;
+        if (s.correct / s.total >= 0.7) strengths.push(topic); else weaknesses.push(topic);
     }
+    
+    // TẠO MẢNG KẾT QUẢ ĐỂ TRANG THỐNG KÊ ĐỌC ĐƯỢC
+    const qrArr = currentQuestionSet.map((q) => {
+        const found = levelResults.find(r => r.id === q.id);
+        return found ? found.correct : false;
+    });
 
+    // ĐẨY DỮ LIỆU LÊN FIREBASE
+    if (typeof window.dataSdk !== 'undefined') {
+        await window.dataSdk.create({
+            player_name: playerName,
+            score: correctCount,
+            completion_time_seconds: timer,
+            level_id: gameState.current_level,
+            question_results: qrArr, // Dữ liệu này sẽ giúp biểu đồ hiện xanh/đỏ
+            strengths: strengths.join(', '),
+            weaknesses: weaknesses.join(', '),
+            date_played: new Date().toISOString()
+        });
+    }
+}
     function toggleReviewDetail(idx) {
         const levelResults = answerLog.filter(a => a.level === gameState.current_level);
         const entry = levelResults[idx];
