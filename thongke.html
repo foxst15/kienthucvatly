@@ -1,157 +1,1251 @@
 <!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thống Kê Physics Quest</title>
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'DM Sans', sans-serif; background: #f0f4ff; }
-        .card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .perf-bar { height: 28px; border-radius: 6px; overflow: hidden; display: flex; width: 100%; background: #e2e8f0; }
-        .perf-bar-correct { background: #4ade80; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; transition: width 0.4s; }
-        .perf-bar-wrong { background: #f87171; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; transition: width 0.4s; }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8">📊 Thống kê Physics Quest</h1>
-        <div class="card p-6 mb-8">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="trophy" class="text-yellow-500"></i> Bảng Xếp Hạng</h2>
-            <div id="lb-list" class="space-y-3"><p class="text-gray-400 text-center py-4">Đang tải...</p></div>
-        </div>
-        <div class="card p-6">
-            <button onclick="document.getElementById('perf-auth').classList.toggle('hidden')" class="text-indigo-600 font-bold flex items-center gap-2">
-                <i data-lucide="lock"></i> Khu vực quản trị
-            </button>
-            <div id="perf-auth" class="hidden mt-4 space-y-4">
-                <input type="password" id="perf-pw" placeholder="Nhập mật khẩu..." class="border p-2 rounded w-full max-w-xs">
-                <button onclick="checkPassword()" class="px-4 py-2 bg-gray-800 text-white rounded font-bold">Xác nhận</button>
-            </div>
-            <div id="perf-dashboard" class="hidden mt-6">
-                <button onclick="window.deleteAllData()" class="mb-6 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all flex items-center gap-2">
-                    <i data-lucide="trash-2" style="width:16px;height:16px"></i> Xóa toàn bộ dữ liệu
-                </button>
-                <h3 class="text-xl font-bold mb-4">Chi tiết hiệu suất từng câu</h3>
-                <div id="perf-levels-container"></div>
-            </div>
-        </div>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Quest</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .screen { display: none; }
+    .screen.active { display: flex; }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-up { animation: slideUp 0.5s ease forwards; }
+    .drag-item { cursor: grab; transition: transform 0.2s, box-shadow 0.2s; }
+    .drag-item:active { cursor: grabbing; transform: scale(1.05); }
+    .drag-item.dragging { opacity: 0.5; }
+    .drop-zone { transition: background 0.2s, border-color 0.2s; }
+    .drop-zone.drag-over { border-color: #f97316; background: rgba(249,115,22,0.1); }
+    .progress-fill { transition: width 0.5s ease; }
+    .hint-box { animation: fadeIn 0.3s ease; }
+    .lb-row { animation: slideUp 0.4s ease forwards; opacity: 0; }
+    .shake { animation: shake 0.4s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    .bounce { animation: bounce 0.4s ease; }
+    @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+    .sorting-btn.active-true { background: #16a34a !important; color: #ffffff !important; border-color: #15803d !important; }
+    .sorting-btn.active-false { background: #dc2626 !important; color: #ffffff !important; border-color: #b91c1c !important; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+        font-family: 'DM Sans', sans-serif; 
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    }
+    .screen { display: none; width: 100%; max-width: 600px; }
+    .screen.active { display: flex; flex-direction: column; }
+    
+    button { touch-action: manipulation; }
+    .question-area { width: 100%; }
+    .lb-row { animation: slideUp 0.4s ease forwards; opacity: 0; width: 100%; }
+  </style>
+ </head>
+ <body class="p-4">
+  <div id="start-screen" class="screen active flex-col items-center justify-center text-center fade-in">
+   <div class="text-7xl mb-6">⚡</div>
+   <h1 class="text-3xl font-bold mb-2 text-orange-800">Physics Quest</h1>
+   <p class="mb-6 text-orange-600">Thử thách Vật lí </p>
+   
+   <input id="player-name-input" class="w-full max-w-xs px-4 py-3 rounded-xl border-2 border-orange-300 focus:border-orange-500 outline-none text-center text-lg mb-4" placeholder="Nhập tên của bạn...">
+   <button class="w-full max-w-xs px-8 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all hover:scale-105 bg-gradient-to-r from-orange-400 to-red-400 text-white" onclick="startGame()">Bắt đầu chơi</button>
+   <button class="mt-4 w-full max-w-xs px-6 py-2 rounded-lg font-semibold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all text-sm" onclick="showLeaderboardFromStart()">🏆 Bảng xếp hạng</button>
+   
+   <div class="mt-8 flex items-center justify-center gap-2 text-emerald-700 bg-emerald-100 px-5 py-2 rounded-full font-bold shadow-sm border border-emerald-200">
+        <span class="relative flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+        Đang Online: <span id="online-count">0</span>
+   </div>
+  </div>
+  
+  <div id="question-screen" class="screen flex-col fade-in">
+   <div class="flex items-center justify-between mb-4 w-full">
+    <span id="q-counter" class="text-sm font-medium text-gray-500"></span>
+    <span id="timer-display" class="text-sm font-medium text-gray-500 flex items-center gap-1"><i data-lucide="clock" style="width:16px;height:16px"></i> <span id="timer-text">0:00</span></span>
+   </div>
+   <div class="w-full h-3 rounded-full bg-orange-100 mb-6 overflow-hidden">
+    <div id="progress-bar" class="progress-fill h-full rounded-full bg-gradient-to-r from-orange-400 to-red-400" style="width:0%"></div>
+   </div>
+   <div id="question-area" class="bg-white rounded-2xl shadow-lg p-6 mb-4 w-full"></div>
+   <div id="feedback-area" class="hidden rounded-xl p-4 mb-4"></div>
+   <button id="next-btn" class="hidden w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 shadow-md hover:shadow-lg transition-all" onclick="nextQuestion()">Tiếp theo →</button>
+  </div>
+  
+  <div id="result-screen" class="screen flex-col items-center w-full max-w-lg mx-auto fade-in overflow-y-auto" style="max-height: calc(100 * min(var(--vh, 1vh), 1vh));">
+   <div class="text-6xl mb-4">🎉</div>
+   <h2 data-template-id="result-title" class="canva-text font-bold mb-2">Hoàn thành xuất sắc!</h2>
+   <p data-template-id="result-subtitle" class="canva-text mb-4">Cùng xem lại kết quả nhé</p>
+   <div class="flex gap-6 mb-6">
+    <div class="text-center">
+     <p data-template-id="stat-label-score" class="canva-text text-sm">Điểm số</p>
+     <p id="score-display" class="text-4xl font-bold text-orange-600"></p>
     </div>
+    <div class="text-center">
+     <p data-template-id="stat-label-accuracy" class="canva-text text-sm">Độ chính xác</p>
+     <p id="accuracy-display" class="text-4xl font-bold text-purple-600"></p>
+    </div>
+   </div>
+  
+   <div class="w-full bg-green-50 rounded-2xl shadow p-5 mb-4 border border-green-200">
+    <p data-template-id="strength-label" class="canva-text font-bold text-green-700 mb-2">💪 Điểm mạnh của em</p>
+    <p id="strength-content" class="text-gray-700 text-sm whitespace-pre-wrap"></p>
+   </div>
+   <div class="w-full bg-amber-50 rounded-2xl shadow p-5 mb-4 border border-amber-200">
+    <p data-template-id="improve-label" class="canva-text font-bold text-amber-700 mb-2">🎯 Cần cải thiện thêm</p>
+    <p id="improve-content" class="text-gray-700 text-sm whitespace-pre-wrap"></p>
+   </div>
+   <div class="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 mb-4 border-2 border-blue-200">
+    <h3 data-template-id="next-level-title" class="canva-text font-bold mb-3 text-indigo-800">🎯 Hướng luyện tập tiếp theo</h3>
+    <p id="next-level-guidance" class="text-gray-700 mb-4"></p>
+    <div class="bg-white rounded-xl p-4 mb-4 border-l-4 border-indigo-500">
+     <p class="font-semibold text-gray-800 mb-2" id="next-level-name"></p>
+     <p class="text-sm text-gray-600" id="next-level-description"></p>
+    </div>
+    <button id="next-level-btn" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md hover:shadow-lg transition-all hover:scale-105">▶ Luyện tập ngay</button>
+   </div>
+   <div class="w-full bg-white rounded-2xl shadow-lg p-5 mb-6">
+    <h3 data-template-id="review-title" class="canva-text font-bold mb-3">Xem lại kết quả từng câu</h3>
+    <div id="review-list" class="space-y-2"></div>
+   </div>
+   <div class="flex gap-3 mb-8">
+    <button class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 shadow-md hover:shadow-lg transition-all" onclick="showLeaderboard()">Bảng xếp hạng</button>
+    <button class="px-6 py-3 rounded-xl font-bold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all" onclick="restartGame()">Chơi lại</button>
+   </div>
+  </div>
+  
+  <div id="leaderboard-screen" class="screen flex-col w-full max-w-lg mx-auto fade-in">
+   <h2 data-template-id="lb-title" class="canva-text font-bold text-center mb-6 text-2xl">Bảng Vàng Danh Dự</h2>
+   <div id="lb-list" class="space-y-3"></div>
+   <button class="mt-6 px-6 py-3 rounded-xl font-bold text-orange-600 bg-orange-100 shadow-md hover:shadow-lg transition-all self-center" onclick="restartGame()">← Quay lại</button>
+  </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyArKIBD9RWIOhNgPrPLKtPHn1EsQUHjmE8",
-            authDomain: "score-57210.firebaseapp.com",
-            databaseURL: "https://score-57210-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "score-57210",
-            storageBucket: "score-57210.firebasestorage.app",
-            messagingSenderId: "425618398285",
-            appId: "1:425618398285:web:47eccf49c844df2e865004"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyArKIBD9RWIOhNgPrPLKtPHn1EsQUHjmE8",
+        authDomain: "score-57210.firebaseapp.com",
+        databaseURL: "https://score-57210-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "score-57210",
+        storageBucket: "score-57210.firebasestorage.app",
+        messagingSenderId: "425618398285",
+        appId: "1:425618398285:web:47eccf49c844df2e865004"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.allRecords = [];
+    // Khởi tạo Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        onValue(ref(db, 'leaderboard'), (snapshot) => {
-            const data = [];
-            snapshot.forEach(child => { data.push(child.val()); });
-            window.allRecords = data.sort((a, b) => b.score - a.score || a.completion_time_seconds - b.completion_time_seconds);
+    // 1. Theo dõi số lượng người Online
+    const connectedRef = ref(db, ".info/connected");
+    const onlineUsersRef = ref(db, 'online_users');
+
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            const myConnectionsRef = push(onlineUsersRef);
+            // Tự động xóa node khi người dùng đóng trình duyệt
+            onDisconnect(myConnectionsRef).remove();
+            set(myConnectionsRef, true);
+        }
+    });
+
+    // Cập nhật con số hiển thị lên màn hình
+    onValue(onlineUsersRef, (snapshot) => {
+        const count = snapshot.size;
+        const counter = document.getElementById('online-count');
+        if (counter) {
+            counter.innerText = count; 
+        }
+    });
+
+    // 2. Giao tiếp với Game (Lưu điểm)
+    window.dataSdk = {
+        create: async function(data) {
+            await push(ref(db, 'leaderboard'), data);
+            return { isOk: true };
+        }
+    };
+
+    // 3. Lắng nghe cập nhật Bảng xếp hạng Realtime
+    onValue(ref(db, 'leaderboard'), (snapshot) => {
+        const data = [];
+        snapshot.forEach(child => { data.push(child.val()); });
+        // Sắp xếp: Ưu tiên điểm cao, nếu điểm bằng nhau ưu tiên thời gian thấp
+        data.sort((a,b) => b.score - a.score || a.completion_time - b.completion_time);
+        
+        if (typeof window.updateLeaderboardData === 'function') {
+            window.updateLeaderboardData(data);
+        }
+    });
+  </script>
+
+  <script>
+    // Hàm nhận dữ liệu Realtime từ Firebase
+    function updateLeaderboardData(newData) {
+        leaderboardData = newData;
+        if (document.getElementById('leaderboard-screen').classList.contains('active')) {
             renderLeaderboard();
+        }
+    }
+
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playSound(freq, type, dur) {
+        initAudio();
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.type = type; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        o.start(); o.stop(audioCtx.currentTime + dur);
+    }
+    function correctSound() { playSound(523,'sine',0.15); setTimeout(()=>playSound(659,'sine',0.15),100); setTimeout(()=>playSound(784,'sine',0.3),200); }
+    function wrongSound() { playSound(200,'square',0.3); }
+
+    function startLevel1() { startLevel(1, LEVEL_1_QUESTIONS); }
+    function startLevel2() { startLevel(2, LEVEL_2_QUESTIONS); }
+    function startLevel3() { startLevel(3, LEVEL_3_QUESTIONS); }
+
+    const LEVEL_0_QUESTIONS = [
+        { id: "L0_Q1", level: 0, question_set: "LEVEL_0", tags: ["cơ_năng", "khái_niệm"], type: 'choice', topic: 'Cơ năng', question: 'Cơ năng của một vật bằng:', options: ['Hiệu của động năng và thế năng của vật.', 'Hiệu của thế năng và động năng của vật.', 'Tổng động năng và thế năng của vật.', 'Tích của động năng và thế năng của vật.'], correct_answer: 2, hint1: '💡 Gợi ý: Em hãy nhớ cơ năng liên quan đến cả động năng và thế năng của vật, không phải chỉ một trong hai dạng năng lượng.', hint2: 'Cơ năng = Động năng + Thế năng', explanation: 'Đáp án đúng là:\nC. Tổng động năng và thế năng của vật.\n📘 Giải thích đáp án:\nCơ năng của một vật là tổng động năng và thế năng của vật.\nCông thức:\nW = Wđ + Wt\nCơ năng không phải là hiệu hoặc tích của động năng và thế năng.' },
+    { id: "L0_Q2", level: 0, question_set: "LEVEL_0", tags: ["bảo_toàn_cơ_năng", "rơi_tự_do"], type: 'sorting', topic: 'Bảo toàn cơ năng', question: 'Khi một vật được thả rơi tự do, bỏ qua lực cản không khí, hãy chọn phát biểu Đúng hoặc Sai.', statements: ['Động năng của vật tăng dần.', 'Thế năng của vật giảm dần.', 'Tổng động năng và thế năng của vật không đổi.', 'Cơ năng của vật luôn thay đổi.'], answers: [true, true, true, false], hint1: '💡 Gợi ý: Em hãy xét quá trình vật rơi tự do: độ cao giảm dần còn tốc độ tăng dần. Khi bỏ qua lực cản không khí, tổng động năng và thế năng có thay đổi không?', hint2: 'Trong rơi tự do không có lực cản, cơ năng được bảo toàn. Động năng tăng, thế năng giảm nhưng tổng không đổi.', explanation: 'Đáp án đúng là:\n1: Đúng.\n2: Đúng.\n3: Đúng.\n4: Sai.\n📘 Giải thích đáp án:\nKhi vật rơi tự do, tốc độ của vật tăng dần nên động năng tăng.\nĐộ cao của vật giảm dần nên thế năng giảm.\nDo bỏ qua lực cản không khí, tổng động năng và thế năng của vật không đổi.\nPhát biểu “cơ năng của vật luôn thay đổi” là sai.' },
+    { id: "L0_Q3", level: 0, question_set: "LEVEL_0", tags: ["rơi_tự_do", "chuyển_hóa"], type: 'dragdrop', topic: 'Rơi tự do', question: 'Khi vật rơi từ độ cao h xuống mặt đất, bỏ qua lực cản không khí, hãy ghép mỗi đại lượng với sự biến đổi tương ứng:', pairs: [['Động năng', 'Tăng'], ['Thế năng', 'Giảm'], ['Cơ năng', 'Không đổi']], hint1: '💡 Gợi ý: Em hãy quan sát sự biến đổi khi vật rơi xuống: tốc độ tăng, độ cao giảm. Từ đó ghép từng đại lượng với sự thay đổi phù hợp.', hint2: 'Cơ năng = Động năng + Thế năng. Khi không có lực cản, cơ năng được bảo toàn.', explanation: 'Đáp án đúng là:\nĐộng năng → Tăng\nThế năng → Giảm\nCơ năng → Không đổi\n📘 Giải thích đáp án:\nKhi vật rơi xuống, tốc độ của vật tăng còn độ cao giảm.\nPhân tích:\nTốc độ tăng nên động năng tăng.\nĐộ cao giảm nên thế năng giảm.\nBỏ qua lực cản không khí nên cơ năng không đổi.' },
+    { id: "L0_Q4", level: 0, question_set: "LEVEL_0", tags: ["chuyển_hóa_năng_lượng", "động_năng", "thế_năng"], type: 'fillin', topic: 'Chuyển hóa năng lượng', question: 'Khi một quả bóng được ném thẳng đứng lên cao, trong quá trình bóng đi lên, một phần [___] chuyển hóa thành [___].', answer: ['động năng|thế năng', 'thế năng|động năng'], hint1: '💡 Gợi ý: Em hãy xét quá trình bóng đi lên: tốc độ của bóng giảm dần còn độ cao tăng dần. Dạng năng lượng nào giảm và dạng năng lượng nào tăng?', hint2: 'Động năng liên quan đến vận tốc, thế năng liên quan đến độ cao.', explanation: 'Đáp án đúng là:\nMột phần động năng chuyển hóa thành thế năng.\n📘 Giải thích đáp án:\nKhi quả bóng đi lên, vận tốc của bóng giảm còn độ cao tăng.\nPhân tích:\nVận tốc giảm nên động năng giảm.\nĐộ cao tăng nên thế năng tăng.\nSự chuyển hóa:\nMột phần động năng chuyển hóa thành thế năng.' },
+    { id: "L0_Q5", level: 0, question_set: "LEVEL_0", tags: ["bảo_toàn_cơ_năng", "ném_lên"], type: 'choice', topic: 'Bảo toàn cơ năng', question: 'Một vật nhỏ được ném lên từ điểm M phía trên mặt đất; vật lên tới điểm N thì dừng lại rồi rơi xuống. Bỏ qua sức cản của không khí. Trong quá trình vật chuyển động từ M đến N, phát biểu nào đúng?', options: ['Cơ năng không đổi.', 'Thế năng giảm.', 'Cơ năng cực đại tại N.', 'Động năng tăng.'], correct_answer: 0, hint1: '💡 Gợi ý: Em hãy chú ý điều kiện "bỏ qua sức cản của không khí". Khi đó, trong quá trình vật đi từ M đến N, động năng và thế năng có thể thay đổi, nhưng tổng của chúng có thay đổi không?', hint2: 'Bảo toàn cơ năng có nghĩa là tổng động năng và thế năng không đổi.', explanation: 'Đáp án đúng là:\nA. Cơ năng không đổi.\n📘 Giải thích đáp án:\nVật chuyển động từ M đến N và bỏ qua sức cản của không khí.\nPhân tích:\nTrong quá trình đi lên, động năng giảm và thế năng tăng.\nTổng động năng và thế năng không đổi.\nCơ năng không cực đại riêng tại N mà được bảo toàn trong suốt quá trình chuyển động.' },
+    { id: "L0_Q6", level: 0, question_set: "LEVEL_0", tags: ["tính_toán", "bảo_toàn_cơ_năng"], type: 'choice', topic: 'Tính toán cơ năng', question: 'Khi một bạn học sinh thả một quả bóng trong trọng trường thì cơ năng của quả bóng được bảo toàn. Chọn mốc thế năng tại mặt đất. Tại một vị trí, quả bóng có động năng và thế năng lần lượt là 5 J và 15 J. Tại một vị trí khác, thế năng của quả bóng là 8 J. Khi đó động năng của quả bóng bằng bao nhiêu?', options: ['20 J', '10 J', '6 J', '12 J'], correct_answer: 3, hint1: '💡 Gợi ý: Em hãy tính tổng động năng và thế năng ban đầu để tìm cơ năng của quả bóng. Sau đó dùng cơ năng đó để tìm phần động năng còn lại khi biết thế năng ở vị trí khác.', hint2: 'Từ vị trí đầu: Cơ năng = 5 + 15 = 20 J. Tại vị trí khác: 20 = Động năng + 8.', explanation: 'Đáp án đúng là:\nD. 12 J.\n📘 Giải thích đáp án:\nCơ năng ban đầu:\nW = Wđ + Wt\nThay số:\nW = 5 + 15 = 20 J\nKhi thế năng là 8 J:\nW = Wđ + Wt\nSuy ra:\nWđ = W - Wt\nThay số:\nWđ = 20 - 8 = 12 J' },
+    { id: "L0_Q7", level: 0, question_set: "LEVEL_0", tags: ["tính_toán", "động_năng", "ném_lên"], type: 'fillin', unit: 'J', topic: 'Tính cơ năng', question: 'Từ mặt đất, một vật có khối lượng 200 g được ném lên với vận tốc 30 m/s. Chọn mốc thế năng tại mặt đất. Bỏ qua sức cản không khí. Cơ năng của vật khi ném là bao nhiêu?', answer: '90', hint1: '💡 Gợi ý: Em hãy nhớ đổi khối lượng 200 g sang kg trước. Vì vật được ném từ mặt đất và chọn mốc thế năng tại mặt đất, hãy xét dạng năng lượng ban đầu của vật.', hint2: 'Động năng = (1/2)mv² = (1/2) × 0,2 × 30² = 90 J', explanation: 'Đáp án đúng là:\n90 J.\n📘 Giải thích đáp án:\nĐổi đơn vị:\n200 g = 0,2 kg\nTại mặt đất:\nThế năng bằng 0 vì chọn mốc thế năng tại mặt đất.\nCơ năng khi ném:\nW = Wđ\nCông thức:\nWđ = 1/2.m.v²\nThay số:\nWđ = 1/2.0,2.30² = 90 J' },
+    { id: "L0_Q8", level: 0, question_set: "LEVEL_0", tags: ["rơi_tự_do", "tính_toán", "động_năng"], type: 'fillin', unit: 'J', topic: 'Rơi tự do', question: 'Một vật có khối lượng 500 g rơi tự do từ độ cao 100 m xuống đất. Lấy g = 10 m/s². Động năng của vật tại độ cao 50 m so với mặt đất bằng bao nhiêu?', answer: '250', hint1: '💡 Gợi ý: Em hãy xác định vật đã rơi được bao nhiêu mét so với vị trí ban đầu. Phần thế năng giảm đi trong quãng đường đó sẽ chuyển hóa thành dạng năng lượng nào?', hint2: 'Cơ năng ban đầu = 0,5 × 10 × 100 = 500 J. Tại h=50m: Wd = 500 - 250 = 250 J', explanation: 'Đáp án đúng là:\n250 J.\n📘 Giải thích đáp án:\nĐổi đơn vị:\n500 g = 0,5 kg\nVật đã rơi được:\ns = 100 - 50 = 50 m\nPhần thế năng giảm đi chuyển hóa thành động năng.\nCông thức:\nWđ = m.g.s\nThay số:\nWđ = 0,5.10.50 = 250 J' },
+    { id: "L0_Q9", level: 0, question_set: "LEVEL_0", tags: ["bảo_toàn_cơ_năng", "tính_toán"], type: 'slider', topic: 'Bảo toàn cơ năng', question: 'Một vật được thả rơi tự do không vận tốc đầu từ độ cao 60 m so với mặt đất. Chọn mốc thế năng tại mặt đất. Hãy chọn độ cao mà tại đó động năng của vật bằng 3 lần thế năng của vật.', min: 0, max: 60, step: 5, unit: 'm', correct_answer: 15, hint1: '💡 Gợi ý: Em hãy gọi độ cao cần chọn là h. Khi động năng bằng 3 lần thế năng, hãy so sánh phần năng lượng ứng với độ cao còn lại và phần năng lượng đã chuyển thành động năng.', hint2: '4mgh = mg×60, suy ra h = 15 m.', explanation: 'Đáp án đúng là:\n15 m.\n📘 Giải thích đáp án:\nGọi độ cao cần chọn là:\nh\nCơ năng ban đầu:\nW = mg.60\nTại độ cao h:\nThế năng là mg.h\nĐộng năng là mg.(60 - h)\nĐiều kiện:\nWđ = 3Wt\nThay vào:\nmg.(60 - h) = 3mg.h\nRút gọn:\n60 - h = 3h\nSuy ra:\nh = 15 m' },
+    { id: "L0_Q10", level: 0, question_set: "LEVEL_0", tags: ["chuyển_hóa_năng_lượng", "tính_toán", "ném"], type: 'choice', topic: 'Chuyển hóa năng lượng', question: 'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 10 m/s². Vận tốc ném ban đầu của bóng là bao nhiêu?', options: ['15 m/s', '25 m/s', '20 m/s', '10 m/s'], correct_answer: 2, hint1: '💡 Gợi ý: Em hãy so sánh cơ năng ban đầu ở độ cao 20 m với cơ năng khi bóng nảy lên đến độ cao 40 m. Phần chênh lệch năng lượng liên quan đến vận tốc ném ban đầu.', hint2: '(1/2)×0,2×v₀² + 0,2×10×20 = 0,2×10×40', explanation: 'Đáp án đúng là:\nC. 20 m/s.\n📘 Giải thích đáp án:\nCơ năng khi bóng nảy lên đến độ cao 40 m:\nW = mg.40\nCơ năng ban đầu:\nBóng ở độ cao 20 m và có vận tốc ban đầu v0.\nBiểu thức:\nW = mg.20 + 1/2.m.v0²\nBảo toàn cơ năng:\nmg.20 + 1/2.m.v0² = mg.40\nRút gọn:\n1/2.v0² = g.(40 - 20)\nThay số:\n1/2.v0² = 10.20 = 200\nSuy ra:\nv0² = 400\nv0 = 20 m/s' }
+];
+
+    const LEVEL_1_QUESTIONS = [
+        { id: "L1_Q1", level: 1, question_set: "LEVEL_1", tags: ["công_thức", "khái_niệm"], type: 'dragdrop', topic: 'Công thức cơ bản', question: 'Hãy ghép mỗi đại lượng vật lí với công thức tương ứng.', pairs: [['Động năng', 'Wđ = 1/2.m.v²'], ['Thế năng trọng trường', 'Wt = m.g.h'], ['Cơ năng', 'W = Wđ + Wt']], hint1: '💡 Em hãy dựa vào ý nghĩa của từng đại lượng. Đại lượng liên quan đến chuyển động sẽ gắn với vận tốc; đại lượng liên quan đến độ cao sẽ gắn với h; còn cơ năng liên quan đến cả hai dạng năng lượng.', hint2: 'Động năng = (1/2)mv², Thế năng = mgh, Cơ năng = Động năng + Thế năng', explanation: 'Đáp án đúng là:\nĐộng năng → Wđ = 1/2.m.v²\nThế năng trọng trường → Wt = m.g.h\nCơ năng → W = Wđ + Wt\n📘 Giải thích đáp án:\nĐộng năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nGhi nhớ:\nW = Wđ + Wt' },
+        { id: "L1_Q2", level: 1, question_set: "LEVEL_1", tags: ["khái_niệm", "đại_lượng"], type: 'choice', topic: 'Khái niệm cơ năng', question: 'Hãy chọn thẻ mô tả đúng về cơ năng.', options: ['Cơ năng là đại lượng vô hướng.', 'Cơ năng là vectơ cùng hướng với vận tốc.', 'Cơ năng là vectơ cùng hướng với trọng lực.', 'Cơ năng chỉ phụ thuộc vào thời gian.'], correct_answer: 0, hint1: '💡 Em hãy nhớ cơ năng là một dạng năng lượng. Khi xét một dạng năng lượng, em cần xác định nó có hướng như vectơ hay chỉ có giá trị độ lớn.', hint2: 'Năng lượng không có phương và chiều, nó chỉ có giá trị lớn.', explanation: 'Đáp án đúng là:\nA. Cơ năng là đại lượng vô hướng.\n📘 Giải thích đáp án:\nCơ năng là một dạng năng lượng.\nNăng lượng là đại lượng vô hướng, không có hướng như vectơ.\nDo đó, cơ năng không phải là vectơ cùng hướng với vận tốc hay trọng lực.' },
+        { id: "L1_Q3", level: 1, question_set: "LEVEL_1", tags: ["bảo_toàn_cơ_năng", "rơi_tự_do"], type: 'sorting', topic: 'Bảo toàn cơ năng', question: 'Khi một vật rơi tự do và bỏ qua lực cản không khí, hãy chọn Đúng hoặc Sai.', statements: ['Cơ năng của vật được bảo toàn.', 'Tổng động năng và thế năng của vật không đổi.', 'Cơ năng của vật luôn giảm trong quá trình rơi.', 'Cơ năng của vật chỉ gồm động năng.'], answers: [true, true, false, false], hint1: '💡 Gợi ý: Em hãy nhớ lại định nghĩa cơ năng và điều kiện bảo toàn cơ năng trong trọng trường nhé.', hint2: 'Cơ năng là tổng động năng và thế năng. Trong môi trường không có lực cản, tổng này luôn giữ nguyên.', explanation: 'Đáp án đúng là:\n1: Đúng.\n2: Đúng.\n3: Sai.\n4: Sai.\n📘 Giải thích đáp án:\nCơ năng được bảo toàn khi không có lực cản, tổng động năng và thế năng không đổi.\nPhát biểu 3 và 4 sai vì cơ năng không giảm và luôn bao gồm cả hai loại năng lượng là động năng và thế năng.' },
+        { id: "L1_Q4", level: 1, question_set: "LEVEL_1", tags: ["con_lắc", "chuyển_hóa"], type: 'choice', topic: 'Con lắc đơn', question: 'Một con lắc đơn dao động, bỏ qua lực cản không khí. Khi vật đi từ vị trí biên về vị trí thấp nhất thì:', options: ['Động năng giảm, thế năng tăng.', 'Động năng tăng, thế năng giảm.', 'Động năng và thế năng đều tăng.', 'Động năng và thế năng đều giảm.'], correct_answer: 1, hint1: '💡 Em hãy quan sát vị trí của vật trên quỹ đạo con lắc. Vị trí nào có độ cao nhỏ nhất thì thế năng nhỏ nhất; vị trí nào vật chuyển động nhanh nhất thì động năng lớn nhất.', hint2: 'Khi xuống: h giảm nên Wt giảm, v tăng nên Wđ tăng. Khi lên: v giảm nên Wđ giảm, h tăng nên Wt tăng.', explanation: 'Đáp án đúng là: B\n📘 Giải thích đáp án:\nKhi con lắc đi từ vị trí biên về vị trí cân bằng, vật chuyển động nhanh dần nên động năng tăng. Đồng thời độ cao giảm nên thế năng giảm. Do bỏ qua lực cản không khí nên cơ năng được bảo toàn, tức là không đổi trong suốt quá trình dao động.' },
+        { id: "L1_Q5", level: 1, question_set: "LEVEL_1", tags: ["ném_ngang", "bảo_toàn_cơ_năng"], type: 'dragdrop', topic: 'Ném ngang', question: 'Một quả bóng được ném ngang khỏi mặt bàn và rơi xuống sàn. Bỏ qua lực cản không khí. Hãy ghép mỗi đại lượng với sự biến đổi phù hợp trong quá trình bóng rơi xuống.', pairs: [['Động năng', 'Tăng'], ['Thế năng', 'Giảm'], ['Cơ năng', 'Không đổi']], hint1: '💡 Em hãy xét quá trình quả bóng rơi xuống: độ cao giảm dần, tốc độ tăng dần. Từ đó suy ra dạng năng lượng nào tăng, dạng nào giảm và tổng cơ năng có đổi không.', hint2: 'Bỏ qua lực cản không khí, nên cơ năng được bảo toàn.', explanation: 'Đáp án đúng là:\nĐộng năng → Tăng\nThế năng → Giảm\nCơ năng → Không đổi\n📘 Giải thích đáp án:\nKhi quả bóng rơi xuống, độ cao của bóng giảm còn tốc độ của bóng tăng.\nPhân tích:\nĐộ cao giảm nên thế năng giảm.\nTốc độ của bóng tăng nên động năng tăng.\nBỏ qua lực cản không khí nên cơ năng được bảo toàn.' },
+        { id: "L1_Q6", level: 1, question_set: "LEVEL_1", tags: ["bảo_toàn_cơ_năng", "ném_thẳng_đứng"], type: 'sorting', topic: 'Bảo toàn cơ năng', question: 'Khi một vật được ném thẳng đứng lên cao (bỏ qua lực cản không khí), hãy chọn Đúng hoặc Sai.', statements: ['Tại vị trí cao nhất, vận tốc của vật bằng 0.', 'Tại vị trí cao nhất, động năng của vật đạt giá trị cực đại.', 'Trong quá trình chuyển động, cơ năng của vật không đổi.', 'Khi vật đi lên, thế năng của vật giảm dần.'], answers: [true, false, true, false], hint1: '💡 Gợi ý: Tại vị trí cao nhất, vật dừng lại hay tiếp tục chuyển động? Khi đi lên, độ cao của vật thay đổi thế nào?', hint2: 'Động năng phụ thuộc vào vận tốc, thế năng phụ thuộc vào độ cao. Trong ném thẳng đứng, vận tốc giảm dần khi đi lên.', explanation: 'Đáp án đúng là:\n1: Đúng.\n2: Sai.\n3: Đúng.\n4: Sai.\n📘 Giải thích đáp án:\nTại vị trí cao nhất, vận tốc bằng 0 nên động năng bằng 0 (chứ không phải cực đại).\nCơ năng được bảo toàn.\nKhi vật đi lên, độ cao tăng nên thế năng tăng (chứ không phải giảm).' },
+        { id: "L1_Q7", level: 1, question_set: "LEVEL_1", tags: ["con_lắc", "chuyển_hóa"], type: 'dragdrop', topic: 'Dao động con lắc', question: 'Hãy ghép quá trình chuyển động của con lắc với sự chuyển hóa năng lượng phù hợp.', pairs: [['Từ vị trí cao xuống vị trí thấp nhất', 'Thế năng giảm, động năng tăng'], ['Từ vị trí thấp nhất đi lên vị trí cao', 'Động năng giảm, thế năng tăng'], ['Nếu bỏ qua lực cản', 'Cơ năng không đổi']], hint1: '💡 Em hãy so sánh hai chiều chuyển động của con lắc: khi vật đi xuống thấp hơn và khi vật đi lên cao hơn. Hai quá trình này có sự chuyển hóa năng lượng ngược nhau.', hint2: 'Khi xuống: h giảm nên Wt giảm, v tăng nên Wđ tăng. Khi lên: v giảm nên Wđ giảm, h tăng nên Wt tăng.', explanation: 'Đáp án đúng là:\nTừ vị trí cao xuống vị trí thấp nhất → Thế năng giảm, động năng tăng\nTừ vị trí thấp nhất đi lên vị trí cao → Động năng giảm, thế năng tăng\nNếu bỏ qua lực cản → Cơ năng không đổi\n📘 Giải thích đáp án:\nTrong dao động của con lắc, động năng và thế năng chuyển hóa qua lại.\nPhân tích:\nKhi vật đi từ vị trí cao xuống vị trí thấp nhất, độ cao giảm nên thế năng giảm, vận tốc tăng nên động năng tăng.\nKhi vật đi từ vị trí thấp nhất lên vị trí cao, vận tốc giảm nên động năng giảm, độ cao tăng nên thế năng tăng.\nNếu bỏ qua lực cản, cơ năng của con lắc không đổi.' },
+        { id: "L1_Q8", level: 1, question_set: "LEVEL_1", tags: ["tính_toán", "thế_năng"], type: 'fillin', unit: 'J', topic: 'Tính toán thế năng', question: 'Một vật có khối lượng m = 1 kg ở độ cao h = 5 m so với mặt đất. Chọn mốc thế năng tại mặt đất. Lấy g = 10 m/s². Thế năng trọng trường của vật bằng bao nhiêu?', answer: '50', hint1: '💡 Em hãy xác định đúng ba đại lượng cần dùng để tính thế năng trọng trường: khối lượng, gia tốc trọng trường và độ cao so với mốc thế năng.', hint2: 'Wt = 1 × 10 × 5 = 50 J', explanation: 'Đáp án đúng là:\n50 J.\n📘 Giải thích đáp án:\nCông thức:\nWt = m.g.h\nThay số:\nWt = 1.10.5 = 50 J' },
+    { id: "L1_Q9", level: 1, question_set: "LEVEL_1", tags: ["tính_toán", "động_năng", "rơi_tự_do"], type: 'fillin', unit: 'J', topic: 'Tính toán động năng', question: 'Một vật có khối lượng 1 kg rơi tự do từ độ cao 50 cm xuống đất. Lấy g = 10 m/s², bỏ qua lực cản không khí. Động năng của vật ngay trước khi chạm đất bằng bao nhiêu?', answer: '5', hint1: '💡 Em hãy nhớ đổi đơn vị 50 cm. Sau đó xét xem thế năng ban đầu đã chuyển hóa thành dạng năng lượng nào ngay trước khi vật chạm đất.', hint2: 'Wđ = m.g.h = 1 × 10 × 0,5 = 5 J', explanation: 'Đáp án đúng là:\n5 J.\n📘 Giải thích đáp án:\nĐổi đơn vị:\n50 cm = 0,5 m\nVật rơi tự do từ trạng thái nghỉ và bỏ qua lực cản không khí.\nThế năng ban đầu chuyển hóa thành động năng ngay trước khi vật chạm đất.\nCông thức:\nWđ = m.g.h\nThay số:\nWđ = 1.10.0,5 = 5 J' },
+    
+        { id: "L1_Q10", level: 1, question_set: "LEVEL_1", tags: ["tính_toán", "bảo_toàn_cơ_năng"], type: 'choice', topic: 'Bảo toàn cơ năng - Ứng dụng', question: 'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 10 m/s². Vận tốc ném ban đầu của bóng là bao nhiêu?', options: ['15 m/s', '25 m/s', '20 m/s', '10 m/s'], correct_answer: 2, hint1: '💡 Gợi ý: Em hãy dùng định luật bảo toàn cơ năng. Cơ năng lúc ném (tại độ cao 20m với vận tốc v0) phải bằng cơ năng tại điểm cao nhất khi bóng nảy lên (tại độ cao 40m với vận tốc bằng 0). Viết phương trình Wđầu = Wsau rồi giải tìm v0 nhé!', hint2: 'Phương trình: m*g*20 + 0.5*m*v0² = m*g*40. Rút gọn m và giải v0² = 2*g*(40-20).', explanation: 'Đáp án đúng là: C. 20 m/s.\n📘 Giải thích:\nCơ năng tại điểm cao nhất: W = mg.40\nCơ năng lúc ném: W = mg.20 + 1/2.m.v0²\nVì cơ năng bảo toàn: mg.20 + 1/2.m.v0² = mg.40\n=> 0,5.v0² = 10.(40-20) = 200\n=> v0² = 400 => v0 = 20 m/s.' }
+    ];
+
+    const LEVEL_2_QUESTIONS = [
+        { id: "L2_Q1", level: 2, question_set: "LEVEL_2", tags: ["khái_niệm", "cơ_năng"], type: 'dragdrop', topic: 'Đại lượng vật lí', question: 'Hãy ghép mỗi đại lượng vật lí với mô tả tương ứng.', pairs: [['Động năng', 'Năng lượng liên quan đến chuyển động của vật.'], ['Thế năng trọng trường', 'Năng lượng liên quan đến vị trí của vật trong trọng trường.'], ['Cơ năng', 'Tổng động năng và thế năng của vật.']], hint1: '💡 Gợi ý: Em hãy nhớ động năng gắn với chuyển động, thế năng trọng trường gắn với độ cao, còn cơ năng gồm cả động năng và thế năng.', hint2: 'Cơ năng = Động năng + Thế năng trọng trường.', explanation: 'Đáp án đúng là:\nĐộng năng → Năng lượng liên quan đến chuyển động của vật.\nThế năng trọng trường → Năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng → Tổng động năng và thế năng của vật.\n📘 Giải thích đáp án:\nĐộng năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nW = Wđ + Wt' },
+        { id: "L2_Q2", level: 2, question_set: "LEVEL_2", tags: ["bảo_toàn_cơ_năng", "lý_thuyết"], type: 'sorting', topic: 'Bảo toàn cơ năng', question: 'Khi một vật chuyển động trong trọng trường và bỏ qua lực cản không khí, hãy cho biết các phát biểu sau là Đúng hay Sai.', statements: ['Cơ năng của vật được bảo toàn.', 'Động năng và thế năng có thể thay đổi trong quá trình chuyển động.', 'Tổng động năng và thế năng của vật không đổi.', 'Cơ năng luôn giảm trong quá trình chuyển động.'], answers: [true, true, true, false], hint1: '💡 Gợi ý: Em hãy chú ý điều kiện “bỏ qua lực cản không khí”. Khi đó, động năng và thế năng có thể chuyển hóa qua lại, nhưng tổng của chúng có thay đổi không?', hint2: 'Khi không có lực cản, tổng Wđ + Wt luôn là một hằng số.', explanation: 'Đáp án đúng là:\nPhát biểu 1: Đúng.\nPhát biểu 2: Đúng.\nPhát biểu 3: Đúng.\nPhát biểu 4: Sai.\n📘 Giải thích đáp án:\nKhi vật chuyển động trong trọng trường và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\nĐộng năng và thế năng có thể thay đổi trong quá trình chuyển động.\nTuy nhiên, tổng động năng và thế năng không đổi.\nPhát biểu “cơ năng luôn giảm trong quá trình chuyển động” là sai.' },
+        { id: "L2_Q3", level: 2, question_set: "LEVEL_2", tags: ["rơi_tự_do", "cơ_năng"], type: 'choice', topic: 'Rơi tự do', question: 'Một vật được thả rơi từ một độ cao so với mặt đất. Ngay lúc vừa thả, vận tốc của vật bằng 0. Chọn mốc thế năng tại mặt đất. Phát biểu nào sau đây đúng về cơ năng ban đầu của vật?', options: ['Cơ năng của vật bằng thế năng tại vị trí thả.', 'Cơ năng của vật bằng động năng tại vị trí thả.', 'Cơ năng của vật bằng 0.', 'Cơ năng của vật chỉ phụ thuộc vào vận tốc.'], correct_answer: 0, hint1: '💡 Gợi ý: Em hãy xét thời điểm vật vừa được thả. Khi đó vận tốc của vật bằng bao nhiêu? Động năng ban đầu có giá trị như thế nào?', hint2: 'Vận tốc bằng 0 nghĩa là Động năng bằng 0. Vậy Cơ năng chỉ còn lại gì?', explanation: 'Đáp án đúng là:\nA. Cơ năng của vật bằng thế năng tại vị trí thả.\n📘 Giải thích đáp án:\nCơ năng của vật bằng tổng động năng và thế năng.\nW = Wđ + Wt\nNgay lúc vừa thả, vận tốc của vật bằng 0 nên động năng bằng 0.\nDo đó:\nW = 0 + Wt = Wt\nCơ năng ban đầu của vật bằng thế năng tại vị trí thả.' },
+        { id: "L2_Q4", level: 2, question_set: "LEVEL_2", tags: ["rơi_tự_do", "chuyển_hóa"], type: 'dragdrop', topic: 'Sự biến đổi năng lượng', question: 'Một quả bóng rơi xuống từ một độ cao so với mặt đất. Bỏ qua lực cản không khí. Hãy ghép mỗi đại lượng với sự biến đổi phù hợp trong quá trình bóng rơi xuống.', pairs: [['Động năng', 'Tăng.'], ['Thế năng', 'Giảm.'], ['Cơ năng', 'Không đổi.']], hint1: '💡 Gợi ý: Khi quả bóng rơi xuống, độ cao của bóng giảm còn tốc độ tăng. Hãy dựa vào đó để xác định sự biến đổi của từng dạng năng lượng.', hint2: 'Độ cao giảm -> Thế năng giảm. Tốc độ tăng -> Động năng tăng. Tổng không đổi.', explanation: 'Đáp án đúng là:\nĐộng năng → Tăng.\nThế năng → Giảm.\nCơ năng → Không đổi.\n📘 Giải thích đáp án:\nKhi quả bóng rơi xuống, độ cao của bóng giảm nên thế năng giảm.\nTốc độ của bóng tăng nên động năng tăng.\nDo bỏ qua lực cản không khí, cơ năng của bóng được bảo toàn nên không đổi.' },
+        { id: "L2_Q5", level: 2, question_set: "LEVEL_2", tags: ["con_lắc", "chuyển_hóa"], type: 'choice', topic: 'Con lắc đơn', question: 'Một con lắc đơn chuyển động từ vị trí thấp nhất lên vị trí cao hơn. Bỏ qua lực cản không khí. Trong quá trình đó, phát biểu nào sau đây đúng?', options: ['Động năng giảm, thế năng tăng.', 'Động năng tăng, thế năng giảm.', 'Động năng và thế năng đều tăng.', 'Cơ năng giảm dần.'], correct_answer: 0, hint1: '💡 Gợi ý: Khi con lắc đi lên cao hơn, độ cao của vật tăng còn tốc độ của vật giảm. Hãy xét động năng và thế năng theo hai đại lượng này.', hint2: 'Vật đi lên chậm dần (v giảm) và cao lên (h tăng).', explanation: 'Đáp án đúng là:\nA. Động năng giảm, thế năng tăng.\n📘 Giải thích đáp án:\nKhi con lắc đi từ vị trí thấp nhất lên vị trí cao hơn, vật chuyển động chậm dần nên động năng giảm.\nĐộ cao của vật tăng nên thế năng tăng.\nNếu bỏ qua lực cản không khí, cơ năng của con lắc vẫn không đổi.' },
+        { id: "L2_Q6", level: 2, question_set: "LEVEL_2", tags: ["tính_toán", "cơ_năng"], type: 'fillin', unit: 'J', topic: 'Tính cơ năng', question: 'Một vật có khối lượng 100 g đang ở độ cao 1 m so với mặt đất và có vận tốc 4 m/s. Chọn mốc thế năng tại mặt đất. Lấy g = 10 m/s². Cơ năng của vật bằng bao nhiêu?', answer: '1,8|1.8', hint1: '💡 Gợi ý: Em hãy đổi 100 g sang kg. Sau đó tính riêng động năng và thế năng rồi cộng hai giá trị đó để tìm cơ năng.', hint2: 'Wđ = 1/2*0.1*4² = 0.8 J. Wt = 0.1*10*1 = 1 J. Cộng lại nhé!', explanation: 'Đáp án đúng là:\n1,8 J.\n📘 Giải thích đáp án:\nĐổi đơn vị khối lượng: 100 g = 0,1 kg\nĐộng năng ban đầu:\nWđ = 1/2.m.v² = 1/2.0,1.4² = 0,8 J\nThế năng ban đầu:\nWt = m.g.h = 0,1.10.1 = 1 J\nCơ năng của vật là:\nW = Wđ + Wt = 0,8 + 1 = 1,8 J' },
+        { id: "L2_Q7", level: 2, question_set: "LEVEL_2", tags: ["tính_toán", "bảo_toàn"], type: 'choice', topic: 'Bảo toàn cơ năng', question: 'Một vật có khối lượng 500 g được thả rơi tự do từ độ cao 30 m so với mặt đất. Lấy g = 10 m/s², bỏ qua lực cản không khí. Khi động năng của vật bằng 75 J, thế năng của vật bằng bao nhiêu?', options: ['150 J', '100 J', '75 J', '50 J'], correct_answer: 2, hint1: '💡 Gợi ý: Em hãy tính cơ năng ban đầu của vật tại độ cao 30 m. Khi biết động năng, em có thể tìm thế năng bằng cách lấy cơ năng trừ động năng.', hint2: 'Cơ năng W = m.g.h = 0.5 * 10 * 30 = 150 J. Sau đó lấy 150 - 75.', explanation: 'Đáp án đúng là:\nC. 75 J.\n📘 Giải thích đáp án:\nĐổi đơn vị khối lượng: 500 g = 0,5 kg\nVì vật được thả rơi từ trạng thái nghỉ nên cơ năng ban đầu bằng thế năng tại độ cao 30 m.\nW = m.g.h = 0,5.10.30 = 150 J\nKhi động năng bằng 75 J:\nW = Wđ + Wt -> Wt = W - Wđ = 150 - 75 = 75 J' },
+        { id: "L2_Q8", level: 2, question_set: "LEVEL_2", tags: ["tính_toán", "động_năng"], type: 'fillin', unit: 'J', topic: 'Chuyển hóa năng lượng', question: 'Một vật có khối lượng 500 g được thả rơi tự do từ trạng thái nghỉ. Bỏ qua lực cản không khí. Lấy g = 10 m/s². Sau khi vật rơi được 60 m, động năng của vật bằng bao nhiêu?', answer: '300', hint1: '💡 Gợi ý: Khi vật rơi tự do từ trạng thái nghỉ, phần thế năng giảm đi chuyển hóa thành động năng. Em hãy dùng quãng đường vật đã rơi để tính phần thế năng giảm.', hint2: 'Wđ = Độ giảm thế năng = m*g*s = 0.5 * 10 * 60.', explanation: 'Đáp án đúng là:\n300 J.\n📘 Giải thích đáp án:\nĐổi đơn vị khối lượng: 500 g = 0,5 kg\nKhi vật rơi tự do, phần thế năng giảm đi chuyển hóa thành động năng.\nVật đã rơi được: s = 60 m\nĐộng năng sau khi rơi được 60 m là:\nWđ = m.g.s = 0,5.10.60 = 300 J' },
+    { id: "L2_Q9", level: 2, question_set: "LEVEL_2", tags: ["tính_toán", "tỉ_lệ"], type: 'fillin', unit: 'cm', topic: 'Tỉ lệ năng lượng', question: 'Một vật được thả rơi tự do không vận tốc đầu từ độ cao 40 cm so với mặt đất. Chọn mốc thế năng tại mặt đất. Bỏ qua lực cản không khí. Ở độ cao nào (tính bằng cm) thì thế năng của vật bằng 3 lần động năng của vật?', answer: '30', hint1: '💡 Gợi ý: Cơ năng ban đầu tương ứng với độ cao 40 cm. Nếu thế năng bằng 3 lần động năng, hãy chia tổng cơ năng thành các phần tương ứng.', hint2: 'Thế năng chiếm 3 phần, động năng chiếm 1 phần -> Thế năng bằng 3/4 cơ năng.', explanation: 'Đáp án đúng là:\n30 cm.\n📘 Giải thích đáp án:\nCơ năng ban đầu tương ứng với độ cao 40 cm.\nTheo đề bài, thế năng bằng 3 lần động năng.\nKhi đó, thế năng chiếm 3 phần và động năng chiếm 1 phần. Tổng cơ năng gồm 4 phần.\nVì thế năng chiếm 3/4 cơ năng nên độ cao cần chọn là:\nh = 3/4.40 = 30 cm' },
+        { id: "L2_Q10", level: 2, question_set: "LEVEL_2", tags: ["tính_toán", "con_lắc"], type: 'fillin', topic: 'Con lắc đơn', question: 'Một con lắc đơn có dây treo dài 1 m, vật nặng có khối lượng 0,5 kg. Kéo vật đến vị trí dây treo lệch phương thẳng đứng một góc 60° rồi thả nhẹ. Lấy g = 10 m/s², bỏ qua lực cản. Chọn mốc thế năng tại vị trí thấp nhất. Động năng của vật khi đi qua vị trí thấp nhất bằng bao nhiêu J?', answer: '2,5|2.5', hint1: '💡 Gợi ý: Em hãy tìm độ cao ban đầu của vật so với vị trí thấp nhất. Khi vật đi qua vị trí thấp nhất, thế năng ban đầu đã chuyển hóa thành động năng.', hint2: 'Độ cao h = l*(1 - cos60°). Thế năng ban đầu = m*g*h.', explanation: 'Đáp án đúng là:\n2,5 J.\n📘 Giải thích đáp án:\nĐộ cao ban đầu của vật so với vị trí thấp nhất là:\nh = l.(1 - cos60°) = 1.(1 - 0,5) = 0,5 m\nThế năng ban đầu của vật là:\nWt = m.g.h = 0,5.10.0,5 = 2,5 J\nVật được thả nhẹ nên động năng ban đầu bằng 0.\nBỏ qua lực cản nên cơ năng được bảo toàn. Khi vật đi qua vị trí thấp nhất, thế năng chuyển hóa thành động năng -> Wđ = 2,5 J.' }
+    ];
+
+    const LEVEL_3_QUESTIONS = [
+        { id: "L3_Q1", level: 3, question_set: "LEVEL_3", tags: ["lý_thuyết", "cơ_năng"], type: 'choice', topic: 'Tính chất cơ năng', question: 'Phát biểu nào sau đây đúng về cơ năng của một vật?', options: ['Cơ năng là đại lượng vô hướng và có thể âm, dương hoặc bằng không tùy theo mốc thế năng.', 'Cơ năng là đại lượng vectơ và luôn dương.', 'Cơ năng chỉ phụ thuộc vào động năng của vật.', 'Cơ năng luôn bằng thế năng của vật.'], correct_answer: 0, hint1: '💡 Gợi ý: Hãy nhớ cơ năng được tạo từ những dạng năng lượng nào. Cơ năng là đại lượng vô hướng hay vectơ? Giá trị thế năng có phụ thuộc vào mốc chọn hay không?', hint2: 'Năng lượng luôn vô hướng. Thế năng có thể âm nên cơ năng cũng có thể âm.', explanation: 'Đáp án đúng là:\nA. Cơ năng là đại lượng vô hướng và có thể âm, dương hoặc bằng không tùy theo mốc thế năng.\n📘 Giải thích đáp án:\nCơ năng là tổng động năng và thế năng của vật.\nĐộng năng và thế năng đều là đại lượng vô hướng nên cơ năng cũng là đại lượng vô hướng.\nVì thế năng phụ thuộc vào mốc thế năng được chọn, nên giá trị cơ năng có thể âm, dương hoặc bằng không.' },
+        { id: "L3_Q2", level: 3, question_set: "LEVEL_3", tags: ["lý_thuyết", "mốc_thế_năng"], type: 'choice', topic: 'Mốc thế năng', question: 'Vì sao giá trị cơ năng của một vật có thể thay đổi khi chọn mốc thế năng khác nhau?', options: ['Vì thế năng phụ thuộc vào mốc thế năng được chọn.', 'Vì động năng luôn thay đổi khi đổi mốc thế năng.', 'Vì khối lượng của vật thay đổi theo mốc thế năng.', 'Vì vận tốc của vật luôn bằng 0 khi đổi mốc thế năng.'], correct_answer: 0, hint1: '💡 Gợi ý: Hãy so sánh động năng và thế năng: động năng phụ thuộc vào đại lượng nào, còn thế năng phụ thuộc vào yếu tố nào khi chọn mốc thế năng khác nhau?', hint2: 'Động năng phụ thuộc vận tốc, thế năng phụ thuộc vào gốc tọa độ (mốc).', explanation: 'Đáp án đúng là:\nA. Vì thế năng phụ thuộc vào mốc thế năng được chọn.\n📘 Giải thích đáp án:\nĐộng năng phụ thuộc vào khối lượng và vận tốc của vật, nên không thay đổi khi chỉ đổi mốc thế năng.\nThế năng phụ thuộc vào mốc thế năng được chọn.\nDo cơ năng bằng tổng động năng và thế năng, nên khi thế năng thay đổi theo mốc chọn thì giá trị cơ năng cũng có thể thay đổi.' },
+        { id: "L3_Q3", level: 3, question_set: "LEVEL_3", tags: ["suy_luận", "chuyển_hóa"], type: 'choice', topic: 'Phân tích hiện tượng', question: 'Một quả bóng được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Sau khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Nhận xét nào sau đây đúng?', options: ['Ban đầu quả bóng phải có thêm động năng do được ném xuống.', 'Ban đầu quả bóng đứng yên nên không có cơ năng.', 'Sau va chạm, cơ năng của bóng bằng 0.', 'Bóng nảy lên cao hơn vì trọng lực sinh thêm năng lượng.'], correct_answer: 0, hint1: '💡 Gợi ý: Nếu quả bóng chỉ được thả từ độ cao 20 m và không mất mát cơ năng, sau khi nảy lên nó có thể đạt độ cao lớn hơn 20 m không? Hãy chú ý dữ kiện bóng nảy lên đến 40 m.', hint2: 'Bóng nảy cao hơn tức là tổng cơ năng ban đầu phải lớn hơn thế năng ở mốc 20m.', explanation: 'Đáp án đúng là:\nA. Ban đầu quả bóng phải có thêm động năng do được ném xuống.\n📘 Giải thích đáp án:\nNếu quả bóng chỉ được thả từ độ cao 20 m và không mất mát cơ năng, sau khi nảy lên bóng không thể đạt độ cao lớn hơn 20 m.\nTrong đề bài, bóng nảy lên đến độ cao 40 m, cao hơn vị trí ban đầu.\nĐiều đó cho thấy ban đầu bóng phải có thêm động năng do được ném thẳng đứng xuống dưới.' },
+        { id: "L3_Q4", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "ném_ngang"], type: 'fillin', unit: 'm/s', topic: 'Ném ngang', question: 'Một quả bóng nhỏ có khối lượng 100 g được ném theo phương ngang với vận tốc ban đầu 7 m/s từ độ cao 7,5 m so với sàn. Lấy g = 9,8 m/s², bỏ qua lực cản không khí. Tốc độ của quả bóng khi chạm sàn bằng bao nhiêu?', answer: '14', hint1: '💡 Gợi ý: Hãy dùng định luật bảo toàn cơ năng. Tốc độ khi chạm sàn phụ thuộc vào vận tốc ban đầu theo phương ngang và phần thế năng chuyển hóa thành động năng khi bóng rơi xuống.', hint2: '1/2*m*v² = 1/2*m*v0² + m*g*h -> v² = v0² + 2gh', explanation: 'Đáp án đúng là:\n14 m/s.\n📘 Giải thích đáp án:\nBỏ qua lực cản không khí nên cơ năng được bảo toàn.\nTốc độ khi chạm sàn thỏa mãn: v² = v0² + 2gh\nThay số: v² = 7² + 2.9,8.7,5 = 49 + 147 = 196\n=> v = 14 m/s' },
+        { id: "L3_Q5", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "mặt_phẳng_nghiêng"], type: 'choice', topic: 'Mặt phẳng nghiêng', question: 'Một viên bi được thả không vận tốc đầu từ đỉnh một mặt phẳng nghiêng cao 40 cm. Bỏ qua ma sát và lực cản không khí. Lấy g = 9,8 m/s². Vận tốc của viên bi tại chân dốc gần bằng:', options: ['2 m/s.', '2,8 m/s.', '4 m/s.', '8 m/s.'], correct_answer: 1, hint1: '💡 Gợi ý: Ở chân dốc, thế năng ban đầu của viên bi đã chuyển hóa thành động năng. Trước khi tính, hãy đổi 40 cm thành mét.', hint2: 'mgh = 1/2*m*v² -> v = √(2gh)', explanation: 'Đáp án đúng là:\nB. 2,8 m/s.\n📘 Giải thích đáp án:\nĐổi đơn vị độ cao: 40 cm = 0,4 m\nBỏ qua ma sát và lực cản nên thế năng ban đầu chuyển hóa thành động năng tại chân dốc.\nmgh = 1/2.m.v² -> v = √(2gh)\nThay số: v = √(2.9,8.0,4) = √7,84 = 2,8 m/s' },
+        { id: "L3_Q6", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "tỉ_lệ"], type: 'choice', topic: 'Bảo toàn cơ năng', question: 'Một viên bi được thả không vận tốc đầu từ đỉnh một mặt phẳng nghiêng cao 40 cm. Bỏ qua ma sát và lực cản không khí. Lấy g = 9,8 m/s². Khi viên bi có vận tốc 1,4 m/s, nhận xét nào sau đây đúng?', options: ['Động năng bằng thế năng.', 'Động năng lớn gấp 2 lần thế năng.', 'Thế năng lớn gấp 3 lần động năng.', 'Cơ năng bằng 0.'], correct_answer: 2, hint1: '💡 Gợi ý: Hãy xem cơ năng ban đầu ở độ cao 40 cm là tổng năng lượng của viên bi. Sau đó so sánh động năng tại v = 1,4 m/s với phần năng lượng còn lại để tìm quan hệ.', hint2: 'Tính W = m*9.8*0.4. Tính Wđ = 1/2*m*(1.4)². So sánh Wt = W - Wđ với Wđ.', explanation: 'Đáp án đúng là:\nC. Thế năng lớn gấp 3 lần động năng.\n📘 Giải thích đáp án:\nCơ năng ban đầu của viên bi là: W = mgH = m.9,8.0,4 = 3,92m\nKhi v = 1,4 m/s, động năng của viên bi là: Wđ = 1/2.m.v² = 1/2.m.1,4² = 0,98m\nThế năng còn lại là: Wt = W - Wđ = 3,92m - 0,98m = 2,94m\nVì: Wt = 3Wđ nên thế năng lớn gấp 3 lần động năng.' },
+        { 
+    id: "L3_Q7", 
+    level: 3, 
+    question_set: "LEVEL_3", 
+    tags: ["tính_toán", "con_lắc"], 
+    type: 'fillin', 
+    unit: 'J', 
+    topic: 'Thế năng con lắc', 
+    question: 'Một con lắc đơn có dây treo dài 1 m, vật nặng có khối lượng 1 kg. Kéo vật đến vị trí dây treo lệch phương thẳng đứng một góc 60° rồi thả nhẹ. Lấy g = 9,8 m/s², bỏ qua lực cản. Chọn mốc thế năng tại vị trí thấp nhất. Thế năng của vật tại vị trí ban đầu bằng bao nhiêu?', 
+    answer: '4,9|4.9', 
+    hint1: '💡 Gợi ý: Chọn mốc thế năng tại vị trí thấp nhất. Khi dây lệch góc 60°, hãy tìm độ cao tăng thêm của vật so với vị trí thấp nhất rồi dùng công thức tính thế năng.', 
+    hint2: 'h = l*(1 - cos60°). Wt = m*g*h.', 
+    explanation: 'Đáp án đúng là:\n4,9 J.\n📘 Giải thích đáp án:\nKhi dây lệch phương thẳng đứng góc 60°, vật cao hơn vị trí thấp nhất một đoạn:\nh = l.(1 - cos60°) = 1.(1 - 0,5) = 0,5 m\nThế năng của vật tại vị trí ban đầu là:\nWt = m.g.h = 1.9,8.0,5 = 4,9 J' 
+},
+        { id: "L3_Q8", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "ném_xuống"], type: 'choice', topic: 'Ném thẳng đứng', question: 'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 9,8 m/s². Vận tốc ném ban đầu của bóng là bao nhiêu?', options: ['15 m/s.', '19,8 m/s.', '25 m/s.', '10 m/s.'], correct_answer: 1, hint1: '💡 Gợi ý: Hãy so sánh cơ năng lúc bóng bắt đầu được ném xuống từ độ cao 20 m với cơ năng tương ứng khi bóng nảy lên đến độ cao 40 m.', hint2: 'mg*20 + 1/2*m*v0² = mg*40', explanation: 'Đáp án đúng là:\nB. 19,8 m/s.\n📘 Giải thích đáp án:\nBan đầu bóng ở độ cao 20 m và có vận tốc v0. Khi bóng nảy lên đến độ cao 40 m, vận tốc tại điểm cao nhất bằng 0.\nÁp dụng bảo toàn cơ năng: mg.20 + 1/2.m.v0² = mg.40\n1/2.v0² = g.(40 - 20) = 9,8.20 = 196\nv0² = 392 -> v0 ≈ 19,8 m/s' },
+        { id: "L3_Q9", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "con_lắc"], type: 'choice', topic: 'Vận tốc con lắc', question: 'Một con lắc đơn có chiều dài l = 1 m. Kéo cho dây làm với phương thẳng đứng một góc 45° rồi thả tự do. Bỏ qua lực cản không khí. Lấy g = 9,8 m/s². Độ lớn vận tốc của con lắc khi dây làm với phương thẳng đứng một góc 30° gần bằng giá trị nào sau đây?', options: ['1,20 m/s.', '1,77 m/s.', '2,50 m/s.', '3,10 m/s.'], correct_answer: 1, hint1: '💡 Gợi ý: Khi con lắc chuyển từ góc 45° đến góc 30°, một phần thế năng giảm đi chuyển thành động năng. Hãy so sánh độ cao của vật ở hai vị trí góc này.', hint2: '1/2.m.v² = m.g.l.(cos30° - cos45°)', explanation: 'Đáp án đúng là:\nB. 1,77 m/s.\n📘 Giải thích đáp án:\nKhi con lắc chuyển từ góc 45° đến góc 30°, vật đi xuống thấp hơn nên thế năng giảm.\nPhần thế năng giảm chuyển hóa thành động năng:\n1/2.m.v² = m.g.l.(cos30° - cos45°)\nSuy ra: v = √[2.g.l.(cos30° - cos45°)]\nv = √[2.9,8.1.(0,866 - 0,707)] = √3,1164 ≈ 1,77 m/s' },
+        { id: "L3_Q10", level: 3, question_set: "LEVEL_3", tags: ["tính_toán", "hao_hụt"], type: 'slider', topic: 'Năng lượng hao hụt', question: 'Một quả bóng có khối lượng 200 g được ném thẳng đứng lên cao với vận tốc ban đầu 15 m/s. Bóng đạt độ cao cực đại 10 m so với vị trí ném. Lấy g = 9,8 m/s². Do lực cản không khí, cơ năng của bóng bị hao hụt bao nhiêu phần trăm so với cơ năng ban đầu?', min: 0, max: 30, step: 1, unit: '%', correct_answer: 13, hint1: '💡 Gợi ý: Hãy xác định cơ năng ban đầu (động năng lúc ném) và cơ năng lúc đạt đỉnh (chỉ còn thế năng). Lấy hiệu hai cơ năng chia cho cơ năng ban đầu để ra % hao hụt.', hint2: 'W1 = 1/2*0.2*15² = 22.5J. W2 = 0.2*9.8*10 = 19.6J. Hao hụt = (22.5 - 19.6)/22.5 * 100%.', explanation: 'Đáp án đúng là:\n13%.\n📘 Giải thích đáp án:\nCơ năng ban đầu của bóng là động năng lúc vừa ném:\nW1 = 1/2.m.v0² = 1/2.0,2.15² = 22,5 J\nỞ độ cao cực đại, vận tốc của bóng bằng 0 nên cơ năng còn lại là thế năng:\nW2 = m.g.h = 0,2.9,8.10 = 19,6 J\nPhần cơ năng bị hao hụt là: ΔW = W1 - W2 = 22,5 - 19,6 = 2,9 J\nTỉ lệ hao hụt so với cơ năng ban đầu là:\n(2,9 / 22,5) x 100% ≈ 13%' }
+    ];
+
+    let currentQ = 0, score = 0, attempts = 0, correctFirst = 0, timer = 0, timerInterval;
+    let isQuestionAnswered = false;
+    let topicScores = {};
+    let leaderboardData = [];
+    let playerName = '';
+    let answerLog = []; 
+    let gameState = { completed_level: null, answered_count: 0, current_level: 0 };
+    let sortingAnswers = {};
+    let currentQuestionSet = LEVEL_0_QUESTIONS;
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const el = document.getElementById(id);
+        el.classList.add('active');
+        el.classList.remove('fade-in');
+        void el.offsetWidth;
+        el.classList.add('fade-in');
+    }
+
+    function startGame() {
+        playerName = document.getElementById('player-name-input').value.trim() || 'Người chơi';
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        audioCtx.resume();
+        currentQ = 0; score = 0; attempts = 0; correctFirst = 0; timer = 0;
+        isQuestionAnswered = false;
+        topicScores = {};
+        answerLog = [];
+        gameState = { completed_level: null, answered_count: 0, current_level: 0 };
+        sortingAnswers = {};
+        currentQuestionSet = LEVEL_0_QUESTIONS;
+        currentQuestionSet.forEach(q => { if (!topicScores[q.topic]) topicScores[q.topic] = { correct: 0, total: 0 }; });
+        switchScreen('question-screen');
+        startTimer();
+        renderQuestion();
+        lucide.createIcons();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => { timer++; document.getElementById('timer-text').textContent = Math.floor(timer/60) + ':' + String(timer%60).padStart(2,'0'); }, 1000);
+    }
+
+    function renderQuestion() {
+        isQuestionAnswered = false;
+        const q = currentQuestionSet[currentQ];
+        attempts = 0;
+        currentDragDropAttempt = 0;
+
+        // 1. Cập nhật bộ đếm và thanh tiến trình
+        const counterEl = document.getElementById('q-counter');
+        const progressEl = document.getElementById('progress-bar');
+        if (counterEl) counterEl.textContent = `Câu ${currentQ + 1}/${currentQuestionSet.length}`;
+        if (progressEl) progressEl.style.width = `${((currentQ) / currentQuestionSet.length) * 100}%`;
+
+        document.getElementById('feedback-area').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+        const area = document.getElementById('question-area');
+
+        // 2. Phân loại câu hỏi để render
+        if (q.type === 'choice') {
+            area.innerHTML = `
+                <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                <div class="space-y-3">
+                    ${q.options.map((opt, i) => `
+                        <button onclick="checkChoice(${i})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all font-medium text-gray-700">
+                            ${String.fromCharCode(65 + i)}. ${opt}
+                        </button>
+                    `).join('')}
+                </div>`;
+
+        } else if (q.type === 'fillin') {
+            // TỰ ĐỘNG THÊM ĐƠN VỊ NẾU CÓ
+            const unitDisplay = q.unit ? `<span class="ml-2 font-bold text-gray-700 text-lg">${q.unit}</span>` : '';
+            
+            if (Array.isArray(q.answer)) {
+                const questionParts = q.question.split('[___]');
+                let questionHTML = questionParts[0];
+                for (let i = 1; i < questionParts.length; i++) {
+                    questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i];
+                }
+                area.innerHTML = `
+                    <p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
+                    <button onclick="checkFillIn()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
+            } else {
+                area.innerHTML = `
+                    <p class="text-lg font-medium text-gray-700 mb-6">${q.question.replace(/\[___\]/g, '<span class="inline-block border-b-2 border-orange-400 px-2 mx-1">[___]</span>')}</p>
+                    <div class="flex items-center gap-3">
+                        <input id="fill-input" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 outline-none text-lg" placeholder="Nhập đáp án...">
+                        ${unitDisplay}
+                        <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>
+                    </div>`;
+            }
+
+        } else if (q.type === 'sorting') {
+            area.innerHTML = `
+                <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                <div class="space-y-3">
+                    ${q.statements.map((stmt, i) => `
+                        <div class="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
+                            <p class="font-medium text-gray-700 mb-3">${i + 1}. ${stmt}</p>
+                            <div class="flex gap-3">
+                                <button onclick="setSortingAnswer(${i}, true)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-green-700 bg-green-100 border-2 border-green-200 hover:bg-green-200 transition-all" data-answer="${i}" data-value="true">Đúng ✓</button>
+                                <button onclick="setSortingAnswer(${i}, false)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-red-700 bg-red-100 border-2 border-red-200 hover:bg-red-200 transition-all" data-answer="${i}" data-value="false">Sai ✗</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button onclick="checkSorting()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
+                </div>`;
+
+        } else if (q.type === 'dragdrop') {
+            const shuffled = [...q.pairs.map(p => p[1])].sort(() => Math.random() - 0.5);
+            area.innerHTML = `
+                <p class="text-lg font-medium text-gray-700 mb-4">${q.question}</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-3">
+                        ${q.pairs.map((p, i) => `
+                            <div class="p-3 rounded-xl bg-orange-50 font-medium">
+                                ${p[0]} 
+                                <span class="drop-zone inline-block ml-2 min-w-[100px] border-2 border-dashed border-orange-300 rounded-lg px-3 py-1 text-center text-sm text-gray-400 cursor-pointer" 
+                                      data-idx="${i}" 
+                                      onclick="removeDrop(this)" 
+                                      ondragover="event.preventDefault(); this.classList.add('drag-over')" 
+                                      ondragleave="this.classList.remove('drag-over')" 
+                                      ondrop="handleDrop(event, ${i})">kéo vào đây</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="space-y-3" id="drag-items">
+                        ${shuffled.map(s => `
+                            <div class="drag-item p-3 rounded-xl bg-orange-100 border-2 border-orange-300 font-medium text-center cursor-grab" 
+                                 draggable="true" 
+                                 ondragstart="event.dataTransfer.setData('text', this.textContent); this.classList.add('dragging')" 
+                                 ondragend="this.classList.remove('dragging')" 
+                                 style="background: #fed7aa">${s}</div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button onclick="checkDragDrop()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
+            `;
+            saveDragDropState();
+
+        } else if (q.type === 'slider') {
+            area.innerHTML = `
+                <p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                <div class="space-y-4">
+                    <input id="slider-input" type="range" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.min}" class="w-full h-2 rounded-lg appearance-none bg-gradient-to-r from-orange-200 to-red-200 outline-none" oninput="updateSliderDisplay()">
+                    <div class="text-center">
+                        <span id="slider-display" class="text-3xl font-bold text-orange-600">${q.min}</span>
+                        <span class="text-lg font-medium text-gray-600 ml-2">${q.unit}</span>
+                    </div>
+                    <button onclick="checkSlider()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button>
+                </div>`;
+        }
+        lucide.createIcons();
+    }
+
+    function updateSliderDisplay() {
+        const val = document.getElementById('slider-input').value;
+        document.getElementById('slider-display').textContent = val;
+    }
+
+    function saveDragDropState() {
+        const zones = document.querySelectorAll('.drop-zone');
+        const items = document.getElementById('drag-items');
+        dragDropInitialState = {
+            zones: Array.from(zones).map(z => z.textContent),
+            items: Array.from(items.children).map(item => ({
+                text: item.textContent,
+                html: item.outerHTML
+            }))
+        };
+    }
+
+    function resetDragDrop() {
+        if (!dragDropInitialState) return;
+        const zones = document.querySelectorAll('.drop-zone');
+        const dragItemsContainer = document.getElementById('drag-items');
+        
+        zones.forEach((z, i) => {
+            z.textContent = dragDropInitialState.zones[i];
+            z.classList.remove('bg-orange-100', 'drag-over');
+        });
+        
+        dragItemsContainer.innerHTML = '';
+        dragDropInitialState.items.forEach(itemData => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = itemData.html;
+            const newItem = tempDiv.firstElementChild;
+            newItem.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text', this.textContent);
+                this.classList.add('dragging');
+            });
+            newItem.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+            });
+            dragItemsContainer.appendChild(newItem);
+        });
+    }
+
+    function handleDrop(e, idx) {
+        e.preventDefault();
+        const zone = e.target.closest('.drop-zone');
+        if (!zone) return; 
+        const text = e.dataTransfer.getData('text');
+        
+        // Nếu ô đã có chữ, gỡ chữ cũ ra trước
+        if (zone.textContent !== "kéo vào đây") {
+            removeDrop(zone);
+        }
+
+        zone.textContent = text;
+        zone.classList.remove('drag-over');
+        zone.classList.add('bg-orange-100');
+        const items = document.getElementById('drag-items');
+        [...items.children].forEach(c => { if(c.textContent === text) c.style.display = 'none'; });
+    }
+
+   function removeDrop(el) {
+        if (el.textContent === "kéo vào đây") return;
+        const text = el.textContent;
+        const dragItemsContainer = document.getElementById('drag-items');
+        const originalItems = dragItemsContainer.children;
+        for (let item of originalItems) {
+            if (item.textContent === text) {
+                item.style.display = 'block';
+            }
+        }
+        el.textContent = "kéo vào đây";
+        el.classList.remove('bg-orange-100');
+    }
+
+    function getHintDetail() {
+        const totalAnswered = Object.values(topicScores).reduce((a,t) => a + t.total, 0);
+        const totalCorrect = Object.values(topicScores).reduce((a,t) => a + t.correct, 0);
+        if (totalAnswered < 2) return 'normal';
+        return (totalCorrect / totalAnswered) < 0.5 ? 'detailed' : 'normal';
+    }
+
+    function showFeedback(correct, msg, isLevel1 = false) {
+        const fb = document.getElementById('feedback-area');
+        fb.classList.remove('hidden');
+        if (correct) {
+            fb.className = 'rounded-xl p-4 mb-4 bg-green-50 border-2 border-green-200 hint-box';
+            const formattedMsg = msg.split('\n').map(l=>l.trim()).filter(l=>l.length>0).join('<br>');
+            fb.innerHTML = `<p class="font-bold text-green-700 mb-3">🎉 TUYỆT VỜI! EM ĐÃ TRẢ LỜI ĐÚNG RỒI</p><p class="text-green-600 text-sm whitespace-pre-wrap">${formattedMsg}</p>`;
+            correctSound();
+            
+            // 🔥 BÉ LÔI BẮN PHÁO HOA NÈ!
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 150, 
+                    spread: 80,         
+                    origin: { y: 0.6 }, 
+                    colors: ['#f97316', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'],
+                    zIndex: 9999
+                });
+            }
+
+            document.getElementById('question-area').classList.add('bounce');
+            setTimeout(() => document.getElementById('question-area').classList.remove('bounce'), 400);
+        } else {
+            fb.className = 'rounded-xl p-4 mb-4 bg-amber-50 border-2 border-amber-200 hint-box';
+            fb.innerHTML = `<p class="font-bold text-red-600 mb-1">✗ Em còn 1 cơ hội cuối cùng nhé!</p><p class="text-amber-600 text-sm">${msg}</p>`;
+            wrongSound();
+            document.getElementById('question-area').classList.add('shake');
+            setTimeout(() => document.getElementById('question-area').classList.remove('shake'), 400);
+        }
+        lucide.createIcons();
+    }
+
+    function showAnswer(msg) {
+        const fb = document.getElementById('feedback-area');
+        fb.classList.remove('hidden');
+        fb.className = 'rounded-xl p-4 mb-4 bg-red-50 border-2 border-red-200 hint-box';
+        const parts = msg.split('📘');
+        const answerPart = parts[0].trim().split('\n').map(s=>s.trim()).filter(s=>s.length>0).join('<br>');
+        const explanationPart = (parts[1]||'').split('\n').map(s=>s.trim()).filter(s=>s.length>0).join('<br>');
+        fb.innerHTML = `<p class="font-bold text-red-700 mb-3">😢 Em đã hết lượt trả lời rồi!</p><p class="text-red-600 text-sm mb-3">${answerPart}</p><p class="text-red-600 text-sm whitespace-pre-line">📘 ${explanationPart.replace(/<br>/g, '\n')}</p>`;
+        wrongSound();
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function recordAnswer(correct, userAnswer) {
+        const q = currentQuestionSet[currentQ];
+        topicScores[q.topic].total++;
+        if (correct) topicScores[q.topic].correct++;
+        gameState.answered_count++;
+        answerLog.push({
+            qIdx: currentQ,
+            id: q.id,
+            level: q.level,
+            question_set: q.question_set,
+            question: q.question,
+            topic: q.topic,
+            tags: q.tags,
+            type: q.type,
+            userAnswer: userAnswer,
+            correct: correct
+        });
+    }
+
+    function setSortingAnswer(idx, val) {
+        sortingAnswers[idx] = val;
+        const buttons = document.querySelectorAll(`button[data-answer="${idx}"]`);
+        buttons.forEach(btn => {
+            btn.classList.remove('active-true', 'active-false');
+            if (btn.dataset.value === 'true' && val === true) btn.classList.add('active-true');
+            else if (btn.dataset.value === 'false' && val === false) btn.classList.add('active-false');
+        });
+    }
+
+    function checkChoice(idx) {
+        if (isQuestionAnswered) return;
+        const q = currentQuestionSet[currentQ];
+        attempts++;
+        const isLevel1 = gameState.current_level === 1;
+        
+        if (idx === q.correct_answer) {
+            isQuestionAnswered = true;
+            score += attempts === 1 ? 10 : 5;
+            if (attempts === 1) correctFirst++;
+            recordAnswer(true, idx);
+            showFeedback(true, q.explanation);
+            document.getElementById('next-btn').classList.remove('hidden');
+        } else if (attempts === 1) {
+            if (isLevel1) {
+                showFeedback(false, q.hint1, true);
+                setTimeout(() => {
+                    const area = document.getElementById('question-area');
+                    area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                    <div class="space-y-3">${q.options.map((opt, i) => `<button onclick="checkChoice(${i})" class="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all font-medium text-gray-700">${String.fromCharCode(65+i)}. ${opt}</button>`).join('')}</div>`;
+                }, 100);
+            } else {
+                showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+            }
+        } else {
+            isQuestionAnswered = true;
+            recordAnswer(false, idx);
+            showAnswer(q.explanation);
+        }
+    }
+
+    function checkSorting() {
+        if (isQuestionAnswered) return;
+        const q = currentQuestionSet[currentQ];
+        attempts++;
+        const isLevel1 = gameState.current_level === 1;
+        
+        let allCorrect = true;
+        for (let i = 0; i < q.answers.length; i++) {
+            if (sortingAnswers[i] !== q.answers[i]) allCorrect = false;
+        }
+        
+        if (allCorrect) {
+            isQuestionAnswered = true;
+            score += attempts === 1 ? 10 : 5;
+            if (attempts === 1) correctFirst++;
+            recordAnswer(true, {...sortingAnswers});
+            showFeedback(true, q.explanation);
+            document.getElementById('next-btn').classList.remove('hidden');
+        } else if (attempts === 1) {
+            if (isLevel1) {
+                showFeedback(false, q.hint1, true);
+                setTimeout(() => {
+                    const area = document.getElementById('question-area');
+                    area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                    <div class="space-y-3">${q.statements.map((stmt, i) => `<div class="p-4 rounded-xl bg-gray-50 border-2 border-gray-200"><p class="font-medium text-gray-700 mb-3">${i+1}. ${stmt}</p>
+<div class="flex gap-3"><button onclick="setSortingAnswer(${i}, true)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-green-700 bg-green-100 border-2 border-green-200 hover:bg-green-200 transition-all" data-answer="${i}" data-value="true">Đúng ✓</button>
+                    <button onclick="setSortingAnswer(${i}, false)" class="sorting-btn flex-1 px-4 py-2 rounded-lg font-bold text-red-700 bg-red-100 border-2 border-red-200 hover:bg-red-200 transition-all" data-answer="${i}" data-value="false">Sai ✗</button></div></div>`).join('')}
+                    <button onclick="checkSorting()" class="mt-4 w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button></div>`;
+                }, 100);
+            } else {
+                showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+            }
+        } else {
+            isQuestionAnswered = true;
+            recordAnswer(false, {...sortingAnswers});
+            showAnswer(q.explanation);
+        }
+    }
+
+    function checkFillIn() {
+        if (isQuestionAnswered) return;
+        const q = currentQuestionSet[currentQ];
+        attempts++;
+        const isLevel1 = gameState.current_level === 1;
+        
+        let allCorrect = false;
+        let userAnswerRecord = '';
+
+        if (Array.isArray(q.answer)) {
+            const inputs = document.querySelectorAll('.fill-input-multi');
+            const userAnswers = Array.from(inputs).map(inp => inp.value.trim().toLowerCase());
+            userAnswerRecord = userAnswers.join(' | ');
+            const correctAnswerSets = q.answer.map(ans => ans.split('|').map(a => a.trim().toLowerCase()));
+            allCorrect = correctAnswerSets.some(correctSet => correctSet.every((correct, i) => userAnswers[i] === correct));
+        } else {
+            const val = document.getElementById('fill-input').value.trim().toLowerCase();
+            userAnswerRecord = val;
+            const answers = q.answer.split('|').map(a => a.trim().toLowerCase());
+            allCorrect = answers.includes(val);
+        }
+
+        if (allCorrect) {
+            isQuestionAnswered = true;
+            score += attempts === 1 ? 10 : 5;
+            if (attempts === 1) correctFirst++;
+            recordAnswer(true, userAnswerRecord);
+            showFeedback(true, q.explanation);
+            document.getElementById('next-btn').classList.remove('hidden');
+        } else if (attempts === 1) {
+            if (isLevel1) {
+                showFeedback(false, q.hint1, true);
+                setTimeout(() => {
+                    const area = document.getElementById('question-area');
+                    if (Array.isArray(q.answer)) {
+                        const questionParts = q.question.split('[___]');
+                        let questionHTML = questionParts[0];
+                        for (let i = 1; i < questionParts.length; i++) {
+                            questionHTML += `<input class="fill-input-multi w-24 px-3 py-2 mx-1 rounded-lg border-2 border-orange-400 focus:border-orange-600 outline-none text-lg text-center" placeholder="...">` + questionParts[i];
+                        }
+                        area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${questionHTML}</p>
+                        <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button>`;
+                    } else {
+                        area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${q.question.replace(/\[___\]/g, '<span class="inline-block border-b-2 border-orange-400 px-2 mx-1">[___]</span>')}</p>
+                        <div class="flex gap-3"><input id="fill-input" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-400 outline-none text-lg" placeholder="Nhập đáp án...">
+                        <button onclick="checkFillIn()" class="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Trả lời</button></div>`;
+                    }
+                }, 100);
+            } else {
+                showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+            }
+        } else {
+            isQuestionAnswered = true;
+            recordAnswer(false, userAnswerRecord);
+            showAnswer(q.explanation);
+        }
+    }
+
+    function checkSlider() {
+        if (isQuestionAnswered) return;
+        const q = currentQuestionSet[currentQ];
+        const val = parseInt(document.getElementById('slider-input').value);
+        attempts++;
+        const isLevel1 = gameState.current_level === 1;
+        
+        if (val === q.correct_answer) {
+            isQuestionAnswered = true;
+            score += attempts === 1 ? 10 : 5;
+            if (attempts === 1) correctFirst++;
+            recordAnswer(true, val);
+            showFeedback(true, q.explanation);
+            document.getElementById('next-btn').classList.remove('hidden');
+        } else if (attempts === 1) {
+            if (isLevel1) {
+                showFeedback(false, q.hint1, true);
+                setTimeout(() => {
+                    const area = document.getElementById('question-area');
+                    area.innerHTML = `<p class="text-lg font-medium text-gray-700 mb-6">${q.question}</p>
+                    <div class="space-y-4"><input id="slider-input" type="range" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.min}" class="w-full h-2 rounded-lg appearance-none bg-gradient-to-r from-orange-200 to-red-200 outline-none" oninput="updateSliderDisplay()">
+                    <div class="text-center"><span id="slider-display" class="text-3xl font-bold text-orange-600">${q.min}</span><span class="text-lg font-medium text-gray-600 ml-2">${q.unit}</span></div>
+                    <button onclick="checkSlider()" class="w-full px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-red-400 hover:scale-105 transition-all">Kiểm tra</button></div>`;
+                }, 100);
+            } else {
+                showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+            }
+        } else {
+            isQuestionAnswered = true;
+            recordAnswer(false, val);
+            showAnswer(q.explanation);
+        }
+    }
+
+    function checkDragDrop() {
+        if (isQuestionAnswered) return;
+        const q = currentQuestionSet[currentQ];
+        const zones = document.querySelectorAll('.drop-zone');
+        let allCorrect = true;
+        const userMatches = [];
+        zones.forEach((z, i) => { const text = z.textContent.trim(); userMatches.push(text); if (text !== q.pairs[i][1]) allCorrect = false; });
+        
+        attempts++;
+        const isLevel1 = gameState.current_level === 1;
+        
+        if (allCorrect) {
+            isQuestionAnswered = true;
+            score += attempts === 1 ? 10 : 5;
+            if (attempts === 1) correctFirst++;
+            recordAnswer(true, userMatches);
+            showFeedback(true, q.explanation);
+            document.getElementById('next-btn').classList.remove('hidden');
+            currentDragDropAttempt = 0;
+        } else {
+            currentDragDropAttempt++;
+            if (currentDragDropAttempt === 1) {
+                if (isLevel1) {
+                    showFeedback(false, q.hint1, true);
+                } else {
+                    showFeedback(false, getHintDetail() === 'detailed' ? q.hint2 : q.hint1);
+                }
+                setTimeout(() => { resetDragDrop(); }, 600);
+            } else if (currentDragDropAttempt >= 2) {
+                isQuestionAnswered = true;
+                recordAnswer(false, userMatches);
+                showAnswer(q.explanation);
+                currentDragDropAttempt = 0;
+            }
+        }
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        if (currentQ >= currentQuestionSet.length) {
+            gameState.completed_level = gameState.current_level;
+            endGame();
+        } else {
+            renderQuestion();
+        }
+    }
+
+    // =================================================================
+    // LOGIC TỰ ĐỘNG HÓA FEEDBACK (Áp dụng cho mọi Level)
+    // =================================================================
+
+    const LEVEL_0_TAGS_DATA = {
+        0: { name: "Khái niệm cơ năng", explanation: "Nhận biết cơ năng là đại lượng gắn với động năng và thế năng của vật." },
+        1: { name: "Cơ năng bảo toàn trong rơi tự do", explanation: "Nhận ra cơ năng có thể được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí." },
+        2: { name: "Biến đổi động năng, thế năng và cơ năng", explanation: "Phân biệt động năng tăng, thế năng giảm và cơ năng không đổi trong quá trình vật chuyển động." },
+        3: { name: "Chuyển hóa năng lượng khi vật đi lên", explanation: "Nhận ra khi vật đi lên, động năng giảm dần và thế năng tăng dần." },
+        4: { name: "Cơ năng bảo toàn khi bỏ qua lực cản", explanation: "Nhận biết điều kiện bỏ qua lực cản giúp cơ năng của vật được bảo toàn." },
+        5: { name: "Tính động năng từ cơ năng", explanation: "Dùng mối quan hệ giữa cơ năng, động năng và thế năng để xác định động năng của vật." },
+        6: { name: "Xác định cơ năng ban đầu của vật ném lên", explanation: "Xác định cơ năng ban đầu của vật dựa vào vận tốc ban đầu và mốc thế năng đã chọn." },
+        7: { name: "Tính động năng từ độ giảm thế năng", explanation: "Liên hệ phần thế năng giảm đi với phần động năng mà vật nhận được." },
+        8: { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Lập quan hệ giữa động năng và thế năng theo tỉ lệ cho trước." },
+        9: { name: "Bảo toàn cơ năng qua nhiều trạng thái", explanation: "So sánh cơ năng của vật ở nhiều trạng thái chuyển động khác nhau." }
+    };
+    
+   const LEVEL_TAGS_DATA = {
+    // Level 1
+    "L1_C01": { name: "Công thức động năng, thế năng và cơ năng", explanation: "Nhận biết đúng công thức tính động năng, thế năng trọng trường và cơ năng của vật." },
+    "L1_C02": { name: "Cơ năng là đại lượng vô hướng", explanation: "Nhận ra cơ năng là một dạng năng lượng nên là đại lượng vô hướng." },
+    "L1_C03": { name: "Bảo toàn cơ năng trong rơi tự do", explanation: "Nhận biết cơ năng được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí." },
+    "L1_C04": { name: "Chuyển hóa năng lượng khi con lắc đi xuống", explanation: "Nhận ra khi con lắc đi từ vị trí biên về vị trí thấp nhất, thế năng giảm dần và động năng tăng dần." },
+    "L1_C05": { name: "Biến đổi động năng, thế năng và cơ năng khi vật rơi", explanation: "Phân biệt động năng tăng, thế năng giảm và cơ năng không đổi khi vật rơi xuống." },
+    "L1_C06": { name: "Cơ năng và chuyển hóa năng lượng khi vật ném lên", explanation: "Nhận ra khi vật ném lên, động năng giảm, thế năng tăng và cơ năng được bảo toàn nếu bỏ qua lực cản." },
+    "L1_C07": { name: "Chuyển hóa động năng và thế năng của con lắc", explanation: "Phân biệt sự chuyển hóa giữa động năng và thế năng trong quá trình con lắc chuyển động." },
+    "L1_C08": { name: "Tính thế năng trọng trường", explanation: "Vận dụng công thức thế năng trọng trường để tính thế năng của vật so với mốc chọn." },
+    "L1_C09": { name: "Tính động năng khi vật rơi", explanation: "Tính động năng của vật khi thế năng ban đầu chuyển hóa thành động năng trong quá trình rơi." },
+    "L1_C10": { name: "Tỉ lệ giữa động năng và thế năng", explanation: "Xác định mối quan hệ giữa động năng và thế năng trong trường hợp hai đại lượng bằng nhau." },
+    
+    // Level 2
+    "L2_C01": { name: "Nhận biết động năng, thế năng và cơ năng", explanation: "Phân biệt được động năng, thế năng trọng trường và cơ năng của vật." },
+    "L2_C02": { name: "Bảo toàn cơ năng khi bỏ qua lực cản", explanation: "Nhận biết cơ năng được bảo toàn khi vật chuyển động trong trọng trường và bỏ qua lực cản." },
+    "L2_C03": { name: "Cơ năng ban đầu của vật được thả rơi", explanation: "Xác định cơ năng ban đầu của vật được thả rơi từ trạng thái nghỉ." },
+    "L2_C04": { name: "Biến đổi động năng, thế năng và cơ năng khi vật rơi", explanation: "Xác định động năng tăng, thế năng giảm và cơ năng không đổi trong quá trình vật rơi." },
+    "L2_C05": { name: "Chuyển hóa năng lượng của con lắc khi đi lên", explanation: "Nhận ra khi con lắc đi lên, động năng giảm và thế năng tăng." },
+    "L2_C06": { name: "Tính cơ năng từ động năng và thế năng", explanation: "Tính cơ năng của vật bằng tổng động năng và thế năng." },
+    "L2_C07": { name: "Tính thế năng từ cơ năng và động năng", explanation: "Dùng cơ năng và động năng đã biết để xác định thế năng của vật." },
+    "L2_C08": { name: "Tính động năng từ quãng đường rơi", explanation: "Tính động năng của vật dựa vào phần thế năng giảm khi vật rơi được một quãng đường." },
+    "L2_C09": { name: "Tỉ lệ giữa thế năng và động năng", explanation: "Lập quan hệ giữa thế năng và động năng theo tỉ lệ cho trước." },
+    "L2_C10": { name: "Động năng của con lắc tại vị trí thấp nhất", explanation: "Tính động năng của con lắc tại vị trí thấp nhất dựa vào sự chuyển hóa từ thế năng ban đầu." },
+
+    // Level 3
+    "L3_C01": { name: "Cơ năng và mốc thế năng", explanation: "Nhận biết cơ năng là đại lượng vô hướng và giá trị cơ năng có thể phụ thuộc vào mốc thế năng đã chọn." },
+    "L3_C02": { name: "Sự phụ thuộc của cơ năng vào mốc thế năng", explanation: "Giải thích được giá trị cơ năng thay đổi khi thế năng thay đổi theo mốc thế năng được chọn." },
+    "L3_C03": { name: "Động năng ban đầu khi vật nảy cao hơn", explanation: "Nhận ra vật cần có thêm động năng ban đầu để sau va chạm có thể nảy lên cao hơn vị trí ban đầu." },
+    "L3_C04": { name: "Tốc độ chạm sàn của vật ném ngang", explanation: "Vận dụng bảo toàn cơ năng để xác định tốc độ của vật ném ngang khi chạm sàn." },
+    "L3_C05": { name: "Vận tốc ở chân mặt phẳng nghiêng", explanation: "Tính vận tốc của vật ở chân mặt phẳng nghiêng khi thế năng ban đầu chuyển hóa thành động năng." },
+    "L3_C06": { name: "So sánh động năng và thế năng trên mặt phẳng nghiêng", explanation: "So sánh động năng và thế năng của vật tại một trạng thái chuyển động trên mặt phẳng nghiêng." },
+    "L3_C07": { name: "Thế năng ban đầu của con lắc đơn", explanation: "Tính thế năng ban đầu của con lắc đơn dựa vào độ cao so với vị trí thấp nhất." },
+    "L3_C08": { name: "Vận tốc ném ban đầu khi bóng nảy lên", explanation: "Xác định vận tốc ném ban đầu của bóng bằng cách so sánh cơ năng ở các trạng thái chuyển động." },
+    "L3_C09": { name: "Vận tốc của con lắc tại vị trí bất kỳ", explanation: "Tính vận tốc của con lắc tại một vị trí bất kỳ dựa vào độ giảm thế năng." },
+    "L3_C10": { name: "Hao hụt cơ năng do lực cản không khí", explanation: "Xác định phần trăm cơ năng bị hao hụt do lực cản không khí trong quá trình chuyển động." }
+};
+
+const STRENGTH_TEMPLATES = {
+    '1': (tag1, level) => [
+        `Em đã hoàn thành Level ${level}, kết quả này giúp em xác định những nội dung nền tảng cần tiếp tục củng cố.`
+    ],
+    '2': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em đã bước đầu nhận diện được nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã bắt đầu hình thành khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '3': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em đã bước đầu hiểu được cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã làm đúng một số nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '4': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em đã có nền tảng ban đầu trong việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã bước đầu biết vận dụng kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã làm đúng một số nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}, đây là điểm tựa để tiếp tục củng cố ở Level 1.`
+    ],
+    '5': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em đã làm đúng một số nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã có nền tảng ban đầu để tiếp tục rèn luyện khả năng ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã bước đầu nhận diện được kiến thức trọng tâm thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '6': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em đã làm đúng một số câu hỏi liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã bước đầu biết liên hệ kiến thức với tình huống cụ thể thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã có nền tảng ban đầu để tiếp tục rèn cách phân tích và vận dụng nội dung liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '7': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em đã bước đầu vận dụng được kiến thức để ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '8': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em đã làm tốt nội dung liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã nhận diện tốt cách xử lí kiến thức thông qua việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã vận dụng khá tốt kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '9': (tag1, tag2, tag3, tag4) => [
+        `<strong>${tag1.name}</strong>: Em đã làm tốt phần kiến thức liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em đã vận dụng khá tốt kiến thức để ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em đã nhận diện tốt nội dung cốt lõi thông qua việc ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`,
+        `<strong>${tag4.name}</strong>: Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến việc ${tag4.explanation.charAt(0).toLowerCase() + tag4.explanation.slice(1)}`
+    ],
+
+    '10': (level) => {
+        if (level === 0) return [
+            "Em đã hoàn thành rất tốt Level 0 với toàn bộ câu trả lời đúng.",
+            "Em đã thể hiện khả năng nhận diện và vận dụng tốt các nội dung cốt lõi về cơ năng, động năng, thế năng và bảo toàn cơ năng.",
+            "Kết quả này giúp em xác định rõ những nội dung cần rèn luyện trước khi chuyển sang Level tiếp theo."
+        ];
+        if (level === 1) return [
+            "Em đã hoàn thành rất tốt Level 1 với toàn bộ câu trả lời đúng.",
+            "Em đã thể hiện khả năng nhận diện và vận dụng tốt các nội dung nền tảng của chủ đề cơ năng.",
+            "Kết quả này cho thấy em đã sẵn sàng chuyển sang Level tiếp theo."
+        ];
+        if (level === 2) return [
+            "Em đã hoàn thành rất tốt Level 2 với toàn bộ câu trả lời đúng.",
+            "Em đã thể hiện khả năng phân tích và vận dụng tốt các nội dung về cơ năng, động năng, thế năng và bảo toàn cơ năng.",
+            "Kết quả này cho thấy em đã sẵn sàng chuyển sang Level 3 – Thử thách nâng cao."
+        ];
+        if (level === 3) return [
+            "Em đã hoàn thành rất tốt Level 3 với toàn bộ câu trả lời đúng.",
+            "Em đã thể hiện khả năng phân tích và vận dụng tốt các nội dung nâng cao về cơ năng, động năng, thế năng, bảo toàn cơ năng và hao hụt cơ năng.",
+            "Kết quả này cho thấy em đã sẵn sàng thử sức với các bài tập mở rộng hoặc tình huống thực tiễn phức tạp hơn."
+        ];
+        return ["Chúc mừng em đã đạt điểm tuyệt đối!"];
+    }
+
+};
+
+
+const IMPROVE_TEMPLATES = {
+    '1': (tag1) => [
+        `<strong>${tag1.name}</strong>: Em nên rà soát thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ],
+    '2': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em cần củng cố thêm việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên luyện lại nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '3': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em cần luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên chú ý hơn khi xử lí nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '4': (tag1, tag2, tag3) => [
+        `<strong>${tag1.name}</strong>: Em cần củng cố lại việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên luyện thêm các câu hỏi liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `<strong>${tag3.name}</strong>: Em cần chú ý hơn khi vận dụng kiến thức để ${tag3.explanation.charAt(0).toLowerCase() + tag3.explanation.slice(1)}`
+    ],
+    '5': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em cần học lại và luyện thêm cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên bắt đầu từ các ví dụ đơn giản để củng cố việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `Em cần rèn thêm cách nhận diện dữ kiện và chọn kiến thức phù hợp khi làm bài.`
+    ],
+    '6': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em cần rèn luyện thêm sự cẩn thận để tránh nhầm lẫn khi ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên chú ý kiểm tra lại các bước thực hiện nội dung liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`
+    ],
+    '7': (tag1, tag2) => [
+        `<strong>${tag1.name}</strong>: Em cần bắt đầu củng cố lại cách ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`,
+        `<strong>${tag2.name}</strong>: Em nên luyện thêm các câu cơ bản liên quan đến việc ${tag2.explanation.charAt(0).toLowerCase() + tag2.explanation.slice(1)}`,
+        `Em cần chú ý hơn đến cách phân tích sự chuyển hóa giữa động năng, thế năng và cơ năng.`,
+        `Em nên rèn thêm cách đọc dữ kiện, xác định công thức và kiểm tra điều kiện áp dụng.`
+    ],
+    '8': (tag1) => [
+        `<strong>${tag1.name}</strong>: Em nên tối ưu hóa thời gian và cẩn thận với các bẫy nhỏ khi ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ],
+    '9': (tag1) => [
+        `<strong>${tag1.name}</strong>: Em cần duy trì phong độ và luyện thêm kỹ năng xử lý các tình huống phức tạp liên quan đến việc ${tag1.explanation.charAt(0).toLowerCase() + tag1.explanation.slice(1)}`
+    ]
+};
+
+    function getLevelTagsData(level, entry) {
+    // 1. Xử lý riêng cho Level 0 theo cấu trúc ID (0, 1, 2...)
+    if (level === 0 && LEVEL_0_TAGS_DATA[entry.qIdx]) {
+        return LEVEL_0_TAGS_DATA[entry.qIdx];
+    }
+
+    // 2. Xử lý cho Level 1, 2, 3 theo cấu trúc mã L(n)_Cxx
+    // Tách chuỗi và tự động thêm số 0 để "L3_Q1" chuyển thành "L3_C01" chuẩn chỉnh
+    const parts = entry.id.split('_Q');
+    const tagKey = parts[0] + '_C' + parts[1].padStart(2, '0');
+    
+    if (LEVEL_TAGS_DATA[tagKey]) {
+        return LEVEL_TAGS_DATA[tagKey];
+    }
+
+    // 3. Fallback: Nếu không tìm thấy Tag (trường hợp dự phòng)
+    return { 
+        name: entry.topic, 
+        explanation: "nội dung về " + entry.topic.toLowerCase() 
+    };
+}
+
+    function generateStrengthFeedback(levelResults, level, correctCount, total) {    
+    const feedbackHeader = "🌟 ";
+    const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
+
+    if (correctCount === 0) {
+        return feedbackHeader + "Cố gắng lên nhé, khởi đầu sẽ hơi khó khăn một chút thôi!";
+    }
+
+    // Nếu đạt điểm tuyệt đối, gọi thẳng template '10'
+    if (correctCount === total) {
+        if (typeof confetti === 'function') confetti();
+        const templates = STRENGTH_TEMPLATES['10'];
+        const feedbackItems = templates(level); // Truyền level vào để chọn câu phù hợp
+        const feedbackList = feedbackItems.map(item => `* ${item}`).join('<br>');
+        return feedbackHeader + `Xuất sắc! Em đã đạt điểm tuyệt đối Level ${level}.<br>` + feedbackList;
+    }
+
+    // Nếu chưa đạt điểm tuyệt đối, dùng các template từ 1 đến 9
+    let templateKey = correctCount.toString();
+    // Giới hạn templateKey tối đa là 9 nếu số câu đúng > 9 nhưng chưa bằng tổng số câu
+    if (correctCount > 9) templateKey = '9';
+
+    // Phân bổ số thẻ hiển thị (maxTags) theo kịch bản:
+    let maxTags = 1;
+    if (templateKey === '2' || templateKey === '3') maxTags = 2;
+    else if (templateKey >= '4' && templateKey <= '8') maxTags = 3;
+    else if (templateKey === '9') maxTags = 4;
+
+    const selectedTagsData = sortedCorrect.slice(0, maxTags).map(entry => getLevelTagsData(level, entry));
+
+    const templates = STRENGTH_TEMPLATES[templateKey];
+    
+    if (templates) {
+        // Truyền thêm level vào cho template '1' (các template khác sẽ bỏ qua tham số thừa này)
+        const feedbackItems = templates(...selectedTagsData, level);
+        const feedbackList = feedbackItems.map(item => `* ${item}`).join('<br>');
+        
+        return feedbackHeader + "<br>" + feedbackList;
+    }
+
+    return feedbackHeader + `Em đã đạt được ${correctCount}/${total} điểm.`;
+}
+    function generateImproveFeedback(levelResults, level) {
+        const wrongEntries = levelResults.filter(e => !e.correct);
+        const incorrectCount = wrongEntries.length;
+
+        if (incorrectCount === 0) {
+            return `Em chưa có nội dung cần cải thiện nổi bật ở Level ${level}. Em có thể tiếp tục chuyển sang thử thách tiếp theo.`;
+        }
+        
+        if (incorrectCount === 10) {
+            return `Em cần củng cố lại các kiến thức nền tảng của Level ${level}, đặc biệt là khái niệm cơ năng, động năng, thế năng và điều kiện bảo toàn cơ năng. Em nên học lại từng phần nhỏ, làm lại các câu cơ bản và chú ý mối liên hệ giữa động năng, thế năng và cơ năng. Kết quả này giúp em xác định rõ những nội dung cần rèn luyện trước khi chuyển sang Level tiếp theo.`;
+        }
+
+        const sortedWrong = wrongEntries.sort((a, b) => b.qIdx - a.qIdx);
+        
+        let maxTagsForData = 2;
+        let templateKey = '2';
+
+        if (incorrectCount === 1) { maxTagsForData = 1; templateKey = '1'; }
+        else if (incorrectCount === 2) { maxTagsForData = 2; templateKey = '2'; }
+        else if (incorrectCount === 3) { maxTagsForData = 2; templateKey = '3'; }
+        else if (incorrectCount === 4) { maxTagsForData = 3; templateKey = '4'; }
+        else if (incorrectCount >= 5 && incorrectCount <= 6) { maxTagsForData = 2; templateKey = '5'; }
+        else if (incorrectCount >= 7 && incorrectCount <= 9) { maxTagsForData = 2; templateKey = '7'; }
+
+        const selectedTagsData = sortedWrong.slice(0, maxTagsForData).map(entry => getLevelTagsData(level, entry));
+        const templates = IMPROVE_TEMPLATES[templateKey];
+        
+        if (templates) {
+            const feedbackItems = templates(...selectedTagsData);
+            return feedbackItems.map(item => `* ${item}`).join('<br>');
+        }
+        
+        const wrongTagsNames = selectedTagsData.map(data => `<strong>${data.name}</strong>`).join(', ');
+        return `Để tiến bộ hơn, em cần chú ý luyện thêm các dạng bài liên quan đến: ${wrongTagsNames}.`;
+    }
+
+    function generateNextLevelRecommendation(correctCount, total) {
+        const lvl = gameState.current_level; 
+        const passRatio = correctCount / total;
+        const isPassed = passRatio >= 0.5; // Đúng từ 50% trở lên mới được qua màn
+
+        if (lvl === 0) {
+            if (correctCount <= 4) return { action: startLevel1, guidance:'Em hãy bắt đầu từ những kiến thức và bài tập cơ bản nhất ở Level 1 nhé.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố công thức và tính toán', buttonText:'Luyện tập Level 1' };
+            else if (correctCount <= 7) return { action: startLevel2, guidance:'Nền tảng của em khá ổn! Hãy tiếp tục rèn luyện ở mức độ vận dụng tại Level 2.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+            else return { action: startLevel3, guidance:'Tuyệt đỉnh! Nền tảng của em rất vững chắc, hãy thử sức ngay với các câu hỏi khó ở Level 3 nhé.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
+        } else if (lvl === 1) {
+            if (!isPassed) return { action: startLevel1, guidance:'Em cần làm quen thêm với các công thức cơ bản. Hãy thử lại Level 1 nhé.', levelName:'🔄 Luyện lại Level 1', description:'Rèn luyện kỹ năng tính toán', buttonText:'Chơi lại Level 1' };
+            else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+        } else if (lvl === 2) {
+            if (!isPassed) return { action: startLevel2, guidance:'Các tình huống ở Level 2 khá đa dạng, em nên rèn luyện thêm lần nữa nhé.', levelName:'🔄 Luyện lại Level 2', description:'Phân tích hiện tượng', buttonText:'Chơi lại Level 2' };
+            else return { action: startLevel3, guidance:'Tuyệt vời! Em có nền tảng khá tốt. Hãy thử sức với các câu hỏi vận dụng cao hơn.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
+        } else {
+            if (!isPassed) return { action: startLevel3, guidance:'Level 3 là thử thách khó, em đừng nản chí mà hãy thử lại nhé!', levelName:'🔄 Luyện lại Level 3', description:'Chinh phục vận dụng cao', buttonText:'Chơi lại Level 3' };
+            else return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách! Cô tự hào về em lắm!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Về màn hình chính' };
+        }
+    }
+
+    async function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById('progress-bar').style.width = '100%';
+
+        if (gameState.completed_level === null || gameState.answered_count < currentQuestionSet.length) return;
+
+        const levelNames = ["Level 0", "Level 1", "Level 2", "Level 3"];
+        const currentLvlName = levelNames[gameState.current_level];
+        document.querySelector("#result-screen h2").textContent = "Hoàn thành " + currentLvlName + "!";
+        
+        alert(` hoàn thành ${currentLvlName} `);
+
+        const levelResults = answerLog.filter(a => a.level === gameState.current_level);
+        const correctCount = levelResults.filter(a => a.correct).length;
+        const total = currentQuestionSet.length;
+        const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+        switchScreen('result-screen');
+
+        document.getElementById('score-display').textContent = `${correctCount}/${total}`;
+        document.getElementById('accuracy-display').textContent = `${accuracy}%`;
+        
+        // BÉ LÔI ĐÃ ĐỔI THÀNH innerHTML CHỖ NÀY NÈ
+        document.getElementById('strength-content').innerHTML = generateStrengthFeedback(levelResults, gameState.current_level, correctCount, total);
+        document.getElementById('improve-content').innerHTML = generateImproveFeedback(levelResults, gameState.current_level);
+
+        const nextLevelData = generateNextLevelRecommendation(correctCount, total);
+        document.getElementById('next-level-guidance').textContent = nextLevelData.guidance;
+        document.getElementById('next-level-name').textContent = nextLevelData.levelName;
+        document.getElementById('next-level-description').textContent = nextLevelData.description;
+        
+        const nextBtn = document.getElementById('next-level-btn');
+        nextBtn.textContent = `▶ ${nextLevelData.buttonText}`;
+        nextBtn.onclick = nextLevelData.action;
+
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = '';
+        levelResults.forEach((entry, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-full text-left p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all border-l-4 ' + (entry.correct ? 'border-green-500' : 'border-red-500');
+            btn.innerHTML = `<div class="flex items-center justify-between"><span><span class="${entry.correct ? 'text-green-600' : 'text-red-600'} font-bold">${entry.correct ? '✓' : '✗'}</span> Câu ${idx+1} <span class="text-xs text-gray-400">[${entry.tags.join(', ')}]</span></span><span class="text-sm text-gray-500">${entry.correct ? 'Đúng' : 'Sai'}</span></div>`;
+            btn.onclick = () => toggleReviewDetail(idx);
+            reviewList.appendChild(btn);
         });
 
-        window.deleteAllData = async function() {
-            if (confirm("Cậu chủ có chắc chắn muốn xóa sạch dữ liệu không? Hành động này không thể hoàn tác!")) {
-                await remove(ref(db, 'leaderboard'));
-                alert("Đã xóa sạch!");
-            }
-        };
-
-        function renderLeaderboard() {
-            const list = document.getElementById('lb-list');
-            list.innerHTML = window.allRecords.length > 0 ? '' : '<p class="text-gray-400 text-center py-4">Chưa có dữ liệu.</p>';
-            window.allRecords.slice(0, 20).forEach((entry, i) => {
-                const row = document.createElement('div');
-                row.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100';
-                // TRONG HÀM renderLeaderboard() CỦA thongke.html
-row.innerHTML = `
-    <div class="flex items-center gap-3">
-        <span class="text-xl">${medal}</span>
-        <span class="font-bold text-gray-700">${entry.player_name}</span>
-    </div>
-    <div class="text-right">
-        <span class="font-bold text-orange-600">${entry.score || 0} điểm</span>
-        <span class="text-gray-400 text-sm ml-2">
-            ${Math.floor((entry.completion_time_seconds || 0) / 60)}:${String((entry.completion_time_seconds || 0) % 60).padStart(2, '0')}
-        </span>
-    </div>`;
-                list.appendChild(row);
-            });
-            if(window.lucide) window.lucide.createIcons();
+        const strengths = [], weaknesses = [];
+        for (const [topic, s] of Object.entries(topicScores)) {
+            if (s.total === 0) continue;
+            if (s.correct / s.total >= 0.7) strengths.push(topic); else weaknesses.push(topic);
         }
-    </script>
-
-    <script>
-        function checkPassword() {
-            if(document.getElementById('perf-pw').value === '12345') {
-                document.getElementById('perf-auth').classList.add('hidden');
-                document.getElementById('perf-dashboard').classList.remove('hidden');
-                renderPerfDashboard();
-            } else { alert('Sai mật khẩu!'); }
-        }
-
-       function renderPerfDashboard() {
-    const container = document.getElementById('perf-levels-container');
-    const LEVEL_NAMES = ['Level 0', 'Level 1', 'Level 2', 'Level 3'];
-    let html = '';
-
-    for (let lvl = 0; lvl < 4; lvl++) {
-        let levelRecords = window.allRecords.filter(r => (r.level_id !== undefined ? parseInt(r.level_id) : 0) === lvl);
-        html += `<div class="card mb-4 overflow-hidden">
-            <div class="p-4 font-bold flex justify-between bg-gray-50 cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                ${LEVEL_NAMES[lvl]} <span>${levelRecords.length} lượt</span>
-            </div>
-            <div class="hidden p-4 space-y-3">`;
         
-        for (let qi = 0; qi < 10; qi++) {
-            let correctCount = 0, totalCount = 0;
-            levelRecords.forEach(r => {
-                let res = r.question_results;
-                if (!res) return;
-
-                // CHỐT HẠ: Dù là JSON string, Object hay Mảng, ta ép hết về Mảng
-                let arr = (typeof res === 'string') ? JSON.parse(res) : res;
-                let values = Array.isArray(arr) ? arr : Object.values(arr); 
-                
-                // Kiểm tra kết quả câu thứ qi
-                let val = values[qi];
-                
-                if (val !== undefined && val !== null) {
-                    totalCount++;
-                    // So sánh chặt chẽ
-                    if (val === true || val === 1 || val === "true") correctCount++;
-                }
+        // ĐẨY DỮ LIỆU LÊN FIREBASE QUA SDK ĐÃ KHỞI TẠO Ở TRÊN
+        if (typeof window.dataSdk !== 'undefined') {
+            await window.dataSdk.create({
+                player_name: playerName,
+                score: correctCount,
+                completion_time: timer,
+                strengths: strengths.join(', '),
+                weaknesses: weaknesses.join(', '),
+                date_played: new Date().toISOString()
             });
-            
-            let pct = totalCount ? Math.round((correctCount / totalCount) * 100) : 0;
-            html += `<div class="flex items-center gap-3 text-sm">
-                <span class="w-16 font-medium">Câu ${qi + 1}</span>
-                <div class="perf-bar flex-1">
-                    ${pct > 0 ? `<div class="perf-bar-correct" style="width:${pct}%">${pct}%</div>` : ''}
-                    ${pct < 100 ? `<div class="perf-bar-wrong" style="width:${100 - pct}%">${pct > 0 ? (100 - pct) + '%' : ''}</div>` : ''}
-                </div>
-            </div>`;
         }
-        html += `</div></div>`;
     }
-    container.innerHTML = html;
-    if(window.lucide) window.lucide.createIcons();
-}
-    </script>
-</body>
+
+    function toggleReviewDetail(idx) {
+        const levelResults = answerLog.filter(a => a.level === gameState.current_level);
+        const entry = levelResults[idx];
+        const q = currentQuestionSet[entry.qIdx];
+        
+        const reviewList = document.getElementById('review-list');
+        const existing = reviewList.querySelector(`[data-detail-idx="${idx}"]`);
+        
+        if (existing) { 
+            existing.remove(); 
+            return; 
+        }
+        
+        reviewList.querySelectorAll('[data-detail-idx]').forEach(el => el.remove());
+        
+        const div = document.createElement('div');
+        div.setAttribute('data-detail-idx', idx);
+        div.className = 'mt-2 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm text-gray-700';
+        
+        let html = `<p class="font-bold mb-2">Câu hỏi: ${q.question}</p>`;
+        
+        if (entry.correct) { 
+            html += `<p class="text-green-700 font-semibold">✓ Em đã trả lời đúng!</p>`; 
+        } else { 
+            html += `<p class="text-red-700 font-semibold mb-2">✗ Em đã chọn sai. Đáp án đúng là:</p>`;
+            html += `<p class="text-gray-600 italic border-l-2 border-red-300 pl-2 whitespace-pre-line">${q.explanation}</p>`;
+        }
+        
+        div.innerHTML = html;
+        
+        const buttons = reviewList.querySelectorAll('button');
+        if (buttons[idx]) {
+            reviewList.insertBefore(div, buttons[idx].nextSibling);
+        } else {
+            reviewList.appendChild(div);
+        }
+    }
+
+    function showLeaderboard() { switchScreen('leaderboard-screen'); renderLeaderboard(); }
+    function showLeaderboardFromStart() { switchScreen('leaderboard-screen'); renderLeaderboard(); }
+    
+    function renderLeaderboard() {
+        const list = document.getElementById('lb-list');
+        list.innerHTML = '';
+        
+        // Render top 10
+        leaderboardData.slice(0, 10).forEach((entry, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+            const row = document.createElement('div');
+            row.className = 'lb-row flex items-center justify-between p-4 rounded-xl bg-white shadow-sm border border-orange-100';
+            row.style.animationDelay = `${i * 0.08}s`;
+            row.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">${medal}</span>
+                    <span class="font-bold text-gray-700">${entry.player_name}</span>
+                </div>
+                <div class="text-right">
+                    <span class="font-bold text-orange-600">${entry.score} điểm</span>
+                    <span class="text-gray-400 text-sm ml-2">${Math.floor(entry.completion_time / 60)}:${String(entry.completion_time % 60).padStart(2, '0')}</span>
+                </div>`;
+            list.appendChild(row);
+        });
+
+        // THÊM NÚT BẤM DẪN QUA TRANG THỐNG KÊ
+        const statsBtn = document.createElement('button');
+        statsBtn.className = 'mt-6 w-full px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 shadow-md hover:shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2';
+        statsBtn.innerHTML = '<i data-lucide="bar-chart-3" style="width:20px;height:20px"></i> 📊 Xem trang thống kê chi tiết';
+        statsBtn.onclick = () => window.location.href = 'thongke.html';
+        list.appendChild(statsBtn);
+        
+        // Refresh lại icon Lucide để nó hiện icon chart
+        lucide.createIcons();
+    }
+    function startLevel(levelNum, questionSet) {
+        answerLog = []; 
+        topicScores = {}; 
+        currentQ = 0; attempts = 0; correctFirst = 0; timer = 0; isQuestionAnswered = false;
+        gameState = { completed_level: null, answered_count: 0, current_level: levelNum };
+        sortingAnswers = {};
+        currentQuestionSet = questionSet;
+        topicScores = {};
+        currentQuestionSet.forEach(q => { if (!topicScores[q.topic]) topicScores[q.topic] = { correct: 0, total: 0 }; });
+        switchScreen('question-screen');
+        startTimer();
+        renderQuestion();
+        lucide.createIcons();
+    }
+
+    function restartGame() { switchScreen('start-screen'); }
+
+    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+  </script>
+ </body>
 </html>
