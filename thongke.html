@@ -321,8 +321,46 @@ function soundWrong(){playSound(200,.2,'square');setTimeout(()=>playSound(160,.2
 function soundComplete(){[523,587,659,698,784].forEach((f,i)=>setTimeout(()=>playSound(f,.15),i*100))}
 
 // ===== DATA SDK =====
-const dataHandler={onDataChanged(data){window.allRecords=data;renderLeaderboard();if(perfUnlocked)renderPerfDashboard()}};
-async function initSDK(){const r=await window.dataSdk.init(dataHandler);if(!r.isOk)console.error('SDK init failed')}
+const dataHandler = {
+    onDataChanged(data) {
+        window.allRecords = data || [];
+
+        if (typeof renderLeaderboard === 'function') {
+            renderLeaderboard();
+        }
+
+        if (
+            typeof renderPerfDashboard === 'function' &&
+            perfUnlocked
+        ) {
+            renderPerfDashboard();
+        }
+    }
+};
+
+async function initSDK() {
+    try {
+
+        // Kiểm tra SDK tồn tại
+        if (
+            !window.dataSdk ||
+            typeof window.dataSdk.init !== 'function'
+        ) {
+            console.warn('dataSdk not found');
+            return;
+        }
+
+        const result = await window.dataSdk.init(dataHandler);
+
+        if (!result?.isOk) {
+            console.error('SDK init failed');
+        }
+
+    } catch (err) {
+        console.error('SDK ERROR:', err);
+    }
+}
+
 initSDK();
 
 // ===== SCREENS =====
