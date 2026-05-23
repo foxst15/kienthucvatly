@@ -1,3 +1,5 @@
+
+
 <!doctype html>
 <html lang="vi">
  <head>
@@ -948,7 +950,7 @@ const IMPROVE_TEMPLATES = {
     };
 }
 
-        function generateStrengthFeedback(levelResults, level, correctCount, total) {    
+  function generateStrengthFeedback(levelResults, level, correctCount, total) {    
     const feedbackHeader = "🌟 ";
     const sortedCorrect = [...levelResults.filter(e => e.correct)].sort((a, b) => b.qIdx - a.qIdx);
 
@@ -1025,11 +1027,17 @@ const IMPROVE_TEMPLATES = {
     function generateNextLevelRecommendation(correctCount, total) {
         const lvl = gameState.current_level; 
         const passRatio = correctCount / total;
-        const isPassed = passRatio >= 0.5; // Đúng từ 50% trở lên mới được qua màn
+        const isPassed = passRatio >= 0.5; // Đúng từ 50% trở lên mới được qua màn (dành cho Level 1, 2, 3)
 
         if (lvl === 0) {
-            if (!isPassed) return { action: () => startLevel(0, LEVEL_0_QUESTIONS), guidance:'Điểm số chưa đạt, em nên củng cố thêm kiến thức nền tảng trước khi đi tiếp nhé.', levelName:'🔄 Luyện lại Level 0', description:'Ôn tập khái niệm cơ năng', buttonText:'Chơi lại Level 0' };
-            else return { action: startLevel1, guidance:'Tuyệt vời! Em đã sẵn sàng cho thử thách tiếp theo.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố công thức và tính toán', buttonText:'Luyện tập Level 1' };
+            // KỊCH BẢN ĐIỀU HƯỚNG MỚI CHO LEVEL 0 (TEST ĐẦU VÀO)
+            if (correctCount <= 4) {
+                return { action: startLevel1, guidance:'Em hãy bắt đầu từ những kiến thức và bài tập cơ bản nhất ở Level 1 nhé.', levelName:'📚 Bộ luyện tập Level 1', description:'Củng cố công thức và tính toán', buttonText:'Luyện tập Level 1' };
+            } else if (correctCount <= 7) {
+                return { action: startLevel2, guidance:'Nền tảng của em khá ổn! Hãy tiếp tục rèn luyện ở mức độ vận dụng tại Level 2.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
+            } else {
+                return { action: startLevel3, guidance:'Tuyệt đỉnh! Nền tảng của em rất vững chắc, hãy thử sức ngay với các câu hỏi khó ở Level 3 nhé.', levelName:'🚀 Bộ luyện tập Level 3', description:'Thử thách bảo toàn cơ năng và phân tích hiện tượng', buttonText:'Luyện tập Level 3' };
+            }
         } else if (lvl === 1) {
             if (!isPassed) return { action: startLevel1, guidance:'Em cần làm quen thêm với các công thức cơ bản. Hãy thử lại Level 1 nhé.', levelName:'🔄 Luyện lại Level 1', description:'Rèn luyện kỹ năng tính toán', buttonText:'Chơi lại Level 1' };
             else return { action: startLevel2, guidance:'Em đã nắm được nhiều kiến thức cơ bản. Hãy tiếp tục luyện tập để tăng khả năng vận dụng.', levelName:'⚙️ Bộ luyện tập Level 2', description:'Vận dụng cơ năng trong các tình huống vật lí', buttonText:'Luyện tập Level 2' };
@@ -1041,7 +1049,6 @@ const IMPROVE_TEMPLATES = {
             else return { action: restartGame, guidance:'Chúc mừng em đã hoàn thành toàn bộ thử thách! Cô tự hào về em lắm!', levelName:'🎉 Hoàn thành xuất sắc', description:'Em đã chinh phục mọi cấp độ.', buttonText:'Về màn hình chính' };
         }
     }
-
     async function endGame() {
         clearInterval(timerInterval);
         document.getElementById('progress-bar').style.width = '100%';
