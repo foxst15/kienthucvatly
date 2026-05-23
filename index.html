@@ -179,11 +179,11 @@
     onValue(ref(db, 'leaderboard'), (snapshot) => {
         const data = [];
         snapshot.forEach(child => { data.push(child.val()); });
-        // SẮP XẾP AN TOÀN: Ưu tiên điểm cao, thời gian thấp
+        // Sắp xếp: Ưu tiên điểm cao, nếu điểm bằng nhau ưu tiên thời gian thấp
         data.sort((a,b) => {
-            const timeA = a.completion_time_seconds || a.completion_time || 0;
-            const timeB = b.completion_time_seconds || b.completion_time || 0;
-            return b.score - a.score || timeA - timeB;
+            let timeA = a.completion_time_seconds || a.completion_time || 0;
+            let timeB = b.completion_time_seconds || b.completion_time || 0;
+            return (b.score || 0) - (a.score || 0) || timeA - timeB;
         });
         
         if (typeof window.updateLeaderboardData === 'function') {
@@ -1220,14 +1220,19 @@ const IMPROVE_TEMPLATES = {
             const row = document.createElement('div');
             row.className = 'lb-row flex items-center justify-between p-4 rounded-xl bg-white shadow-sm border border-orange-100';
             row.style.animationDelay = `${i * 0.08}s`;
+
+            // BÉ LÔI FIX LỖI NAN Ở ĐÂY NÈ 🎀
+            let timeVal = entry.completion_time_seconds || entry.completion_time || 0;
+            let timeStr = `${Math.floor(timeVal / 60)}:${String(timeVal % 60).padStart(2, '0')}`;
+
             row.innerHTML = `
                 <div class="flex items-center gap-3">
                     <span class="text-xl">${medal}</span>
-                    <span class="font-bold text-gray-700">${entry.player_name}</span>
+                    <span class="font-bold text-gray-700">${entry.player_name || 'Ẩn danh'}</span>
                 </div>
                 <div class="text-right">
-                    <span class="font-bold text-orange-600">${entry.score} điểm</span>
-                    <span class="text-gray-400 text-sm ml-2">${Math.floor(entry.completion_time / 60)}:${String(entry.completion_time % 60).padStart(2, '0')}</span>
+                    <span class="font-bold text-orange-600">${entry.score || 0} điểm</span>
+                    <span class="text-gray-400 text-sm ml-2">${timeStr}</span>
                 </div>`;
             list.appendChild(row);
         });
