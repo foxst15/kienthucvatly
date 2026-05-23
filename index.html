@@ -1146,13 +1146,14 @@ const IMPROVE_TEMPLATES = {
         const found = levelResults.find(r => r.id === q.id);
         return found ? found.correct : false;
     });
+    const safeTimer = (typeof timer === 'number' && !isNaN(timer)) ? timer : 0;
 
     // ĐẨY DỮ LIỆU LÊN FIREBASE
     if (typeof window.dataSdk !== 'undefined') {
         await window.dataSdk.create({
             player_name: playerName,
             score: correctCount,
-            completion_time_seconds: timer,
+            completion_time_seconds: safeTimer  ,
             level_id: gameState.current_level,
             question_results: qrArr, // Dữ liệu này sẽ giúp biểu đồ hiện xanh/đỏ
             strengths: strengths.join(', '),
