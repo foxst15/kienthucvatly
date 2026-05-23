@@ -263,15 +263,37 @@ const LEVEL_NAMES=['Cấp độ 0 – Cơ bản','Cấp độ 1 – Nhận biế
 const ALL_LEVELS=[LEVEL_0_QUESTIONS,LEVEL_1_QUESTIONS,LEVEL_2_QUESTIONS,LEVEL_3_QUESTIONS];
 
 // ===== GAME STATE =====
-let currentQ=0,attempts=0,score=0,correctFirst=0,correctSecond=0,incorrect=0;
-let timerInterval=null,elapsedSeconds=0,playerName='';
-let topicResults={},questionResults=[],window.allRecords=[];
+let currentQ=0,
+    attempts=0,
+    score=0,
+    correctFirst=0,
+    correctSecond=0,
+    incorrect=0;
+
+let timerInterval=null,
+    elapsedSeconds=0,
+    playerName='';
+
+let topicResults={},
+    questionResults=[];
+
+window.allRecords = window.allRecords || [];
+
 let questionAnswered=false;
-let dragState={matchAnswers:{},tfAnswers:{}};
+
+let dragState={
+    matchAnswers:{},
+    tfAnswers:{}
+};
+
 let currentQuestions=LEVEL_0_QUESTIONS;
 let currentLevelId=0;
-let nextLevelName='',nextLevelQuestions=null;
+
+let nextLevelName='',
+    nextLevelQuestions=null;
+
 let QUESTIONS=LEVEL_0_QUESTIONS;
+
 let perfUnlocked=false;
 
 // ===== NORMALIZE GROUP =====
