@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="vi">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vật Lý Vui</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/editing_sdk.js"></script>
+  <style>
+*{font-family:'DM Sans',sans-serif;box-sizing:border-box}
+:root{--pastel-blue:#a8d8ea;--pastel-mint:#b8e6d0;--pastel-pink:#f4b8c8;--pastel-lavender:#c3b1e1;--pastel-yellow:#fde8a0;--bg-main:#f0f4ff;--card:#ffffff;--text-dark:#2d3250;--text-mid:#5c6180;--correct:#4ade80;--wrong:#f87171;--vh-unit:min(var(--vh,1vh),1vh)}
+body{margin:0;background:var(--bg-main);color:var(--text-dark);overflow-x:hidden}
+.screen{display:none;min-height:calc(100*var(--vh-unit));width:100%}
+.screen.active{display:flex;flex-direction:column}
+.fade-in{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-60px) rotate(720deg);opacity:0}}
+@keyframes burst{0%{transform:scale(0);opacity:1}100%{transform:scale(1);opacity:0}}
+.fireworks-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998}
+.firework{position:absolute;font-size:2rem;animation:burst 0.8s ease-out forwards;will-change:transform,opacity}
+.pop-in{animation:popIn .4s ease}
+.shake{animation:shake .4s ease}
+.stagger>*{animation:slideUp .4s ease both}
+.stagger>*:nth-child(1){animation-delay:.05s}.stagger>*:nth-child(2){animation-delay:.1s}.stagger>*:nth-child(3){animation-delay:.12s}
+.stagger>*:nth-child(4){animation-delay:.16s}.stagger>*:nth-child(5){animation-delay:.2s}
+.progress-fill{transition:width .5s cubic-bezier(.4,0,.2,1)}
+.btn-primary{background:linear-gradient(135deg,#7c83ff,#a78bfa);color:#fff;border:none;padding:14px 36px;border-radius:16px;font-weight:700;font-size:1.1rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(124,131,255,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(124,131,255,.45)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{background:#fff;color:var(--text-dark);border:2px solid var(--pastel-lavender);padding:12px 28px;border-radius:16px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{background:var(--pastel-lavender);color:#fff}
+.drag-item{background:linear-gradient(135deg,var(--pastel-blue),var(--pastel-mint));padding:10px 18px;border-radius:12px;cursor:grab;font-weight:600;user-select:none;transition:transform .15s,box-shadow .15s;touch-action:none}
+.drag-item:active,.drag-item.dragging{cursor:grabbing;transform:scale(1.08);box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50}
+.drop-zone{min-height:44px;border:2px dashed var(--pastel-lavender);border-radius:12px;padding:8px 14px;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.drop-zone.over{border-color:#7c83ff;background:rgba(124,131,255,.08)}
+.drop-zone.filled{border-style:solid;border-color:var(--pastel-mint);background:rgba(184,230,208,.2)}
+.mcq-option{padding:14px 20px;border-radius:14px;font-weight:600;cursor:pointer;border:2px solid #e2e8f0;transition:all .2s;text-align:left;width:100%;background:#fff;display:block}
+.mcq-option:hover{border-color:var(--pastel-lavender);background:rgba(195,177,225,.1)}
+.mcq-option.selected-correct{background:var(--correct)!important;color:#fff!important;border-color:#22c55e!important}
+.mcq-option.selected-wrong{background:var(--wrong)!important;color:#fff!important;border-color:#ef4444!important}
+.mcq-option.disabled{pointer-events:none;opacity:.7}
+.hint-box{background:linear-gradient(135deg,#fef3c7,#fde68a);border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:14px 18px;margin-top:12px}
+.explanation-box{background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-left:4px solid #3b82f6;border-radius:0 12px 12px 0;padding:14px 18px;margin-top:12px}
+.answer-reveal{background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-left:4px solid #ec4899;border-radius:0 12px 12px 0;padding:14px 18px;margin-top:8px}
+.lb-row:nth-child(1) .lb-rank{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff}
+.lb-row:nth-child(2) .lb-rank{background:linear-gradient(135deg,#d1d5db,#9ca3af);color:#fff}
+.lb-row:nth-child(3) .lb-rank{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+.confetti-particle{position:fixed;pointer-events:none;animation:confetti 1s ease forwards;z-index:9999;font-size:1.2rem}
+input[type=text],input[type=number],input[type=password]{border:2px solid #e2e8f0;border-radius:12px;padding:12px 16px;font-size:1rem;transition:border-color .2s;outline:none;width:100%}
+input[type=text]:focus,input[type=number]:focus,input[type=password]:focus{border-color:var(--pastel-lavender)}
+.question-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600}
+.slider-container{position:relative;padding:20px 0}
+.slider-track{width:100%;height:8px;border-radius:4px;background:#e2e8f0;position:relative}
+.slider-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pastel-lavender),var(--pastel-pink));transition:width .1s}
+input[type=range]{-webkit-appearance:none;width:100%;height:8px;background:transparent;position:absolute;top:20px;left:0;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7c83ff,#a78bfa);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7c83ff,#a78bfa);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer}
+.slider-value{font-size:2rem;font-weight:800;color:#7c83ff}
+.level-3-option-large{font-size:22px;padding:18px 24px}
+.level-3-text-large{font-size:24px;line-height:1.7}
+.level-3-hint-large{font-size:20px;line-height:1.6}
+.level-3-explanation-large{font-size:20px;line-height:1.6}
+.drag-tf-zone{min-height:60px;border:2px dashed var(--pastel-lavender);border-radius:12px;padding:8px;transition:all .2s;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;align-content:flex-start}
+.drag-tf-zone.over{border-color:#7c83ff;background:rgba(124,131,255,.08)}
+.drag-tf-item{background:linear-gradient(135deg,var(--pastel-yellow),#fde8a0);padding:8px 14px;border-radius:10px;cursor:grab;font-weight:500;font-size:.9rem;user-select:none;touch-action:none;transition:transform .15s,box-shadow .15s}
+.drag-tf-item:active,.drag-tf-item.dragging{cursor:grabbing;transform:scale(1.05);box-shadow:0 6px 16px rgba(0,0,0,.12);z-index:50}
+.stat-card{background:#fff;border-radius:16px;padding:20px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.06);flex:1;min-width:120px}
+.stat-card .stat-value{font-size:1.8rem;font-weight:800;line-height:1.2}
+.stat-card .stat-label{font-size:.85rem;font-weight:600;color:var(--text-mid);margin-bottom:6px}
+.feedback-section{background:#fff;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:left}
+.feedback-section h3{margin:0 0 10px 0;font-size:1.05rem}
+.feedback-section ul{margin:0;padding-left:20px;list-style:disc}
+.feedback-section ul li{margin-bottom:8px;font-size:.9rem;line-height:1.5;color:var(--text-mid)}
+.perf-bar{height:28px;border-radius:6px;overflow:hidden;display:flex;width:100%;background:#f1f5f9}
+.perf-bar-correct{background:#4ade80;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;transition:width .4s}
+.perf-bar-wrong{background:#fca5a5;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;transition:width .4s}
+.level-card{background:#fff;border-radius:20px;padding:0;box-shadow:0 2px 12px rgba(0,0,0,.06);overflow:hidden;margin-bottom:16px}
+.level-card-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:1.05rem;transition:background .2s}
+.level-card-header:hover{background:#f8fafc}
+.level-card-body{padding:0 20px 20px;display:none}
+.level-card-body.open{display:block}
+</style>
+  <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
+ </head>
+ <body data-template-id="__page-root" class="w-full">
+  <div id="screen-start" class="screen active fade-in items-center justify-center p-6">
+   <div class="max-w-lg w-full text-center space-y-6">
+    <h1 data-template-id="start-title" class="canva-text font-extrabold"></h1>
+    <p data-template-id="start-subtitle" class="canva-text"></p>
+    <div><label data-template-id="name-input-label" for="player-name" class="canva-text block text-left mb-2 font-semibold"></label><input type="text" id="player-name" data-template-id="name-input" class="canva-input" maxlength="30">
+    </div>
+    <div class="space-y-3"><button data-template-id="start-play-btn" class="canva-button btn-primary w-full" onclick="startGame()"></button><button data-template-id="start-leaderboard-btn" class="canva-button btn-secondary w-full" onclick="showScreen('screen-leaderboard')"></button>
+    </div>
+   </div>
+  </div><div id="screen-game" class="screen p-4 md:p-6">
+   <div class="max-w-2xl mx-auto w-full flex-1 flex flex-col">
+    <div class="flex items-center justify-between mb-4"><span data-template-id="game-progress-label" class="canva-text font-semibold text-sm"></span>
+     <div class="flex items-center gap-2"><i data-lucide="clock" style="width:18px;height:18px;color:var(--pastel-lavender)"></i><span id="timer-display" class="font-mono font-bold text-lg" style="color:var(--text-dark)">00:00</span>
+     </div>
+    </div>
+    <div class="w-full h-3 rounded-full mb-6" style="background:#e8e8f0">
+<div id="progress-fill" class="h-full rounded-full progress-fill" style="width:0%;background:linear-gradient(90deg,var(--pastel-lavender),var(--pastel-pink))"></div>
+    </div>
+    <div id="question-area" class="flex-1 fade-in"></div>
+    <div id="feedback-area" class="mt-4"></div>
+    <div class="mt-6 text-center"><button id="next-btn" class="btn-primary hidden" onclick="nextQuestion()">Câu tiếp theo →</button>
+    </div>
+   </div>
+  </div><div id="screen-result" class="screen items-center p-6">
+   <div class="max-w-2xl w-full space-y-6 fade-in py-8">
+    <div class="text-center">
+     <div id="result-emoji" class="text-6xl pop-in mb-3">
+      🎉
+     </div>
+     <h2 data-template-id="result-title" class="canva-text font-extrabold"></h2>
+     <p data-template-id="result-subtitle" class="canva-text mt-2"></p>
+    </div>
+    <div class="flex gap-4 flex-wrap justify-center">
+     <div class="stat-card pop-in" style="animation-delay:.1s">
+      <div class="stat-label" data-template-id="stat-score-label"></div>
+      <div class="stat-value" id="stat-score-value" style="color:#7c83ff">
+       __/10
+      </div>
+     </div>
+     <div class="stat-card pop-in" style="animation-delay:.2s">
+      <div class="stat-label" data-template-id="stat-accuracy-label"></div>
+      <div class="stat-value" id="stat-accuracy-value" style="color:#a78bfa">
+       __%
+      </div>
+     </div>
+     <div class="stat-card pop-in" style="animation-delay:.3s">
+      <div class="stat-label" data-template-id="stat-breakdown-label"></div>
+      <div id="stat-breakdown-value" class="text-sm font-semibold mt-1" style="color:var(--text-mid);line-height:1.6">
+       Đúng: __<br>
+        Sai: __<br>
+        Đã bỏ qua: __
+      </div>
+     </div>
+    </div>
+    <div class="feedback-section">
+     <h3 data-template-id="result-strengths-label" class="canva-text" style="color:#16a34a"></h3>
+     <ul id="result-strengths-list">
+      <li>—</li>
+     </ul>
+    </div>
+    <div class="feedback-section">
+     <h3 data-template-id="result-weaknesses-label" class="canva-text" style="color:#dc2626"></h3>
+     <ul id="result-weaknesses-list">
+      <li>—</li>
+     </ul>
+    </div>
+    <div class="feedback-section" style="background:linear-gradient(135deg,#fef3c7,#fde8a0);border-left-color:#f59e0b">
+     <h3 data-template-id="result-next-path-label" class="canva-text" style="color:#92400e;margin-bottom:12px"></h3>
+<p id="result-next-path-text" class="text-sm" style="color:#78350f;line-height:1.6;margin:0"></p><button id="result-play-next-level-btn" class="btn-primary text-sm" style="padding:10px 20px;margin-top:12px" onclick="playNextLevel()"></button>
+    </div>
+    <div class="flex gap-3 justify-center flex-wrap pt-2">
+     <button data-template-id="result-play-again-btn" class="canva-button btn-primary" onclick="resetGame()"></button> <button data-template-id="result-leaderboard-btn" class="canva-button btn-secondary" onclick="showScreen('screen-leaderboard')"></button>
+    </div>
+   </div>
+  </div><div id="screen-leaderboard" class="screen p-6">
+   <div class="max-w-2xl mx-auto w-full fade-in">
+    <div class="flex items-center justify-between mb-6">
+     <h2 data-template-id="lb-title" class="canva-text font-extrabold"></h2><button data-template-id="lb-back-btn" class="canva-button btn-secondary text-sm" onclick="showScreen('screen-start')"></button>
+    </div>
+    <div id="lb-list" class="space-y-3 stagger"></div>
+    <p data-template-id="lb-empty-state" id="lb-empty" class="canva-text text-center py-12 hidden"></p><div class="mt-10">
+     <button data-template-id="perf-open-btn" class="canva-button btn-secondary w-full text-left flex items-center gap-2" onclick="showPerfAuth()"> <i data-lucide="bar-chart-2" style="width:20px;height:20px"></i> <span></span> </button> <div id="perf-auth" class="hidden mt-4 bg-white rounded-2xl p-6 shadow-sm">
+      <label data-template-id="perf-password-label" for="perf-pw" class="canva-text block font-semibold mb-2"></label>
+      <div class="flex gap-3">
+       <input type="password" id="perf-pw" class="flex-1" onkeydown="if(event.key==='Enter'){event.preventDefault();checkPerfPassword()}"> <button data-template-id="perf-password-submit" class="canva-button btn-primary text-sm" style="padding:10px 20px" onclick="checkPerfPassword()">Xác nhận</button>
+      </div>
+      <p id="perf-pw-error" class="text-red-500 text-sm mt-2 hidden font-semibold">Mật khẩu không đúng.</p>
+     </div><div id="perf-dashboard" class="hidden mt-6 space-y-4">
+      <h3 data-template-id="perf-dashboard-title" class="canva-text font-bold text-xl mb-4"></h3>
+      <div id="perf-levels-container"></div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyArKIBD9RWIOhNgPrPLKtPHn1EsQUHjmE8",
+        authDomain: "score-57210.firebaseapp.com",
+        databaseURL: "https://score-57210-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "score-57210",
+        storageBucket: "score-57210.firebasestorage.app",
+        messagingSenderId: "425618398285",
+        appId: "1:425618398285:web:47eccf49c844df2e865004"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Lắng nghe dữ liệu leaderboard từ Firebase và cập nhật vào biến toàn cục của trang
+    onValue(ref(db, 'leaderboard'), (snapshot) => {
+        const data = [];
+        snapshot.forEach(child => { data.push(child.val()); });
+        // Cập nhật cho trang thống kê
+        if (typeof window.syncLeaderboardData === 'function') {
+            window.syncLeaderboardData(data);
+        }
+    });
+</script>
+<script>
+    // Biến toàn cục để chứa dữ liệu từ Firebase
+    let allRecords = [];
+
+    // Hàm này được gọi bởi Firebase SDK phía trên
+    window.syncLeaderboardData = function(newData) {
+        allRecords = newData;
+        // Sau khi có dữ liệu mới, tự động render lại bảng
+        if (typeof renderLeaderboard === 'function') renderLeaderboard();
+        // Tối ưu: Chỉ render bảng thống kê nếu đã nhập đúng mật khẩu mở khoá
+        if (typeof renderPerfDashboard === 'function' && perfUnlocked) renderPerfDashboard();
+    };
+</script>
+  <script>
+
+
+// ===== QUESTIONS DATA =====
+const LEVEL_0_QUESTIONS=[{type:'mcq',topic:'Cơ năng',knowledgeGroup:'khai_niem_co_nang',tag:'L0_C01 – Khái niệm cơ năng',tagExplanation:'Nhận biết cơ năng là tổng động năng và thế năng của vật.',question:'Cơ năng của một vật bằng:',options:[{key:'A',text:'Hiệu của động năng và thế năng của vật.'},{key:'B',text:'Hiệu của thế năng và động năng của vật.'},{key:'C',text:'Tổng động năng và thế năng của vật.'},{key:'D',text:'Tích của động năng và thế năng của vật.'}],answer:'C',explanation:'📘 Giải thích đáp án:\nCơ năng của một vật là tổng động năng và thế năng của vật.\nCông thức:\nW = Wđ + Wt\nCơ năng không phải là hiệu hoặc tích của động năng và thế năng.',hint:'Em hãy xem xét: cơ năng có liên quan đến một hay hai dạng năng lượng? Phép toán nào được dùng để kết hợp hai dạng này?'},{type:'drag_tf',topic:'Rơi tự do & Cơ năng',knowledgeGroup:'bao_toan_co_nang_khi_roi_tu_do',tag:'L0_C02 – Bảo toàn cơ năng khi rơi tự do',tagExplanation:'Nhận ra cơ năng được bảo toàn khi vật rơi tự do và bỏ qua lực cản không khí.',question:'Khi một vật được thả rơi tự do, bỏ qua lực cản không khí, hãy kéo các phát biểu sau vào ô Đúng hoặc Sai.',statements:[{text:'Động năng của vật tăng dần.',answer:true},{text:'Thế năng của vật giảm dần.',answer:true},{text:'Tổng động năng và thế năng của vật không đổi.',answer:true},{text:'Cơ năng của vật luôn thay đổi.',answer:false}],explanation:'📘 Giải thích đáp án:\nKhi vật rơi tự do và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\nPhân tích:\nTrong quá trình rơi, vận tốc tăng nên động năng tăng dần.\nĐộ cao giảm nên thế năng giảm dần.\nTổng động năng và thế năng không đổi.\nLưu ý:\nPhát biểu "cơ năng của vật luôn thay đổi" là sai.',hint:'Em hãy xét quá trình vật rơi tự do: độ cao giảm dần còn tốc độ tăng dần.\nKhi bỏ qua lực cản không khí, phần năng lượng mất đi từ độ cao có chuyển sang dạng nào?',scoring:'all_or_nothing',wrongAnalysis:'Em còn nhầm lẫn giữa sự thay đổi của từng thành phần với tổng cơ năng.'},{type:'drag_match',topic:'Rơi tự do & Cơ năng',knowledgeGroup:'bien_doi_nang_luong_khi_vat_roi',tag:'L0_C03 – Biến đổi năng lượng khi vật rơi',tagExplanation:'Xác định được động năng tăng, thế năng giảm và cơ năng không đổi khi vật rơi.',question:'Khi vật rơi từ độ cao h xuống mặt đất, bỏ qua lực cản không khí, hãy ghép mỗi đại lượng với sự biến đổi tương ứng.',pairs:[{left:'Động năng',right:'Tăng'},{left:'Thế năng',right:'Giảm'},{left:'Cơ năng',right:'Không đổi'}],explanation:'📘 Giải thích đáp án:\nKhi vật rơi xuống, tốc độ của vật tăng còn độ cao giảm.\nPhân tích:\nTốc độ tăng nên động năng tăng.\nĐộ cao giảm nên thế năng giảm.\nBỏ qua lực cản không khí nên cơ năng không đổi.',hint:'Em hãy quan sát sự biến đổi khi vật rơi xuống: tốc độ tăng, độ cao giảm. Từ đó ghép từng đại lượng với sự thay đổi phù hợp.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng chiều biến đổi.'},{type:'fill_text',topic:'Chuyển hóa năng lượng',knowledgeGroup:'chuyen_hoa_nang_luong_khi_vat_di_len',tag:'L0_C04 – Chuyển hóa năng lượng khi vật đi lên',tagExplanation:'Nhận ra động năng chuyển hóa thành thế năng khi vật chuyển động đi lên.',question:'Khi một quả bóng được ném thẳng đứng lên cao, trong quá trình bóng đi lên, một phần …… chuyển hóa thành …….',answer:'động năng',answer2:'thế năng',accept1:['động năng','dong nang'],accept2:['thế năng','the nang'],explanation:'📘 Giải thích đáp án:\nKhi quả bóng đi lên, vận tốc của bóng giảm còn độ cao tăng.\nPhân tích:\nVận tốc giảm nên động năng giảm.\nĐộ cao tăng nên thế năng tăng.\nSự chuyển hóa:\nMột phần động năng chuyển hóa thành thế năng.',hint:'Em hãy xét quá trình bóng đi lên: tốc độ của bóng giảm dần còn độ cao tăng dần. Dạng năng lượng nào giảm và dạng năng lượng nào tăng?',wrongAnalysis:'Em chưa xác định đúng chiều chuyển hóa năng lượng.'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'dieu_kien_bao_toan_co_nang',tag:'L0_C05 – Điều kiện bảo toàn cơ năng',tagExplanation:'Nhận biết cơ năng được bảo toàn khi bỏ qua sức cản hoặc lực cản không khí.',question:'Một vật nhỏ được ném lên từ điểm M phía trên mặt đất; vật lên tới điểm N thì dừng lại rồi rơi xuống. Bỏ qua sức cản của không khí.\nTrong quá trình vật chuyển động từ M đến N, phát biểu nào đúng?',options:[{key:'A',text:'Cơ năng không đổi.'},{key:'B',text:'Thế năng giảm.'},{key:'C',text:'Cơ năng cực đại tại N.'},{key:'D',text:'Động năng tăng.'}],answer:'A',explanation:'📘 Giải thích đáp án:\nVật chuyển động từ M đến N và bỏ qua sức cản của không khí.\nPhân tích:\nTrong quá trình đi lên, động năng giảm và thế năng tăng.\nTổng động năng và thế năng không đổi.\nLưu ý:\nCơ năng không cực đại riêng tại N mà được bảo toàn trong suốt quá trình chuyển động.',hint:'Em hãy chú ý điều kiện "bỏ qua sức cản của không khí". Khi đó, trong quá trình vật đi từ M đến N, động năng và thế năng có thể thay đổi, nhưng tổng của chúng có thay đổi không?',wrongAnalysis:'Em chưa áp dụng đúng định luật bảo toàn cơ năng.'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'tinh_dong_nang_tu_co_nang',tag:'L0_C06 – Tính động năng từ cơ năng',tagExplanation:'Dùng cơ năng và thế năng đã biết để tính động năng của vật.',question:'Khi một bạn học sinh thả một quả bóng trong trọng trường thì cơ năng của quả bóng được bảo toàn. Chọn mốc thế năng tại mặt đất. Tại một vị trí, quả bóng có động năng và thế năng lần lượt là 5 J và 15 J. Tại một vị trí khác, thế năng của quả bóng là 8 J. Khi đó động năng của quả bóng bằng bao nhiêu?',options:[{key:'A',text:'20 J'},{key:'B',text:'10 J'},{key:'C',text:'6 J'},{key:'D',text:'12 J'}],answer:'D',explanation:'📘 Giải thích đáp án:\nCơ năng ban đầu:\nW = Wđ + Wt\nThay số:\nW = 5 + 15 = 20 J\nKhi thế năng là 8 J:\nW = Wđ + Wt\nSuy ra:\nWđ = W - Wt\nThay số:\nWđ = 20 - 8 = 12 J',hint:'Em hãy tính tổng động năng và thế năng ban đầu để xác định cơ năng của quả bóng. Sau đó dùng quan hệ: cơ năng = động năng + thế năng để tìm phần còn lại.',wrongAnalysis:'Em chưa vận dụng đúng công thức bảo toàn cơ năng.'},{type:'fill_number',topic:'Tính cơ năng',knowledgeGroup:'co_nang_ban_dau_cua_vat_nem_len',tag:'L0_C07 – Cơ năng ban đầu của vật ném lên',tagExplanation:'Xác định cơ năng ban đầu của vật từ động năng khi chọn mốc thế năng tại mặt đất.',question:'Từ mặt đất, một vật có khối lượng 200 g được ném lên với vận tốc 30 m/s. Chọn mốc thế năng tại mặt đất. Bỏ qua sức cản không khí. Cơ năng của vật khi ném là bao nhiêu J?',answer:'90',accept1:['90'],explanation:'📘 Giải thích đáp án:\nĐổi đơn vị khối lượng:\n200 g = 0,2 kg\nVì chọn mốc thế năng tại mặt đất nên thế năng ban đầu bằng 0.\nCơ năng khi ném bằng động năng ban đầu:\nW = Wđ\nWđ = 1/2.m.v²\nWđ = 1/2.0,2.30² = 90 J',hint:'💡 Gợi ý: Em hãy nhớ đổi khối lượng 200 g sang kg trước.\nVì vật được ném từ mặt đất và chọn mốc thế năng tại mặt đất, hãy xét dạng năng lượng ban đầu của vật.',wrongAnalysis:'Em tính sai cơ năng từ công thức ½mv².',unit:'J'},{type:'fill_text',topic:'Tính động năng',knowledgeGroup:'dong_nang_tu_do_giam_the_nang',tag:'L0_C08 – Động năng từ độ giảm thế năng',tagExplanation:'Tính động năng của vật dựa vào phần thế năng đã giảm trong quá trình rơi.',question:'Một vật có khối lượng 500 g rơi tự do từ độ cao 100 m xuống đất. Lấy g = 10 m/s². Động năng của vật tại độ cao 50 m so với mặt đất bằng bao nhiêu J?',answer:'250',answer2:'',accept1:['250'],accept2:[],explanation:'📘 Giải thích đáp án:\nĐổi đơn vị:\n500 g = 0,5 kg\nVật đã rơi được:\ns = 100 - 50 = 50 m\nÝ chính:\nPhần thế năng giảm đi chuyển hóa thành động năng.\nCông thức:\nWđ = m.g.s\nThay số:\nWđ = 0,5.10.50 = 250 J',hint:'Em hãy xác định vật đã rơi được bao nhiêu mét so với vị trí ban đầu. Phần thế năng giảm đi trong quãng đường đó sẽ chuyển hóa thành dạng năng lượng nào?',wrongAnalysis:'Em chưa tính đúng động năng bằng độ giảm thế năng.',unit:'J'},{type:'slider',topic:'Bảo toàn cơ năng',knowledgeGroup:'ti_le_dong_nang_va_the_nang',tag:'L0_C09 – Tỉ lệ động năng và thế năng',tagExplanation:'Lập quan hệ giữa động năng và thế năng theo tỉ lệ cho trước.',question:'Một vật được thả rơi tự do không vận tốc đầu từ độ cao 60 m so với mặt đất. Chọn mốc thế năng tại mặt đất. Hãy kéo thanh trượt để chọn độ cao mà tại đó động năng của vật bằng 3 lần thế năng của vật.',min:0,max:60,step:5,answer:15,unit:'m',explanation:'📘 Giải thích đáp án:\nGọi độ cao cần chọn là:\nh\nCơ năng ban đầu:\nW = mg.60\nTại độ cao h:\nThế năng là mg.h\nĐộng năng là mg.(60 - h)\nĐiều kiện:\nWđ = 3Wt\nThay vào:\nmg.(60 - h) = 3mg.h\nRút gọn:\n60 - h = 3h\nSuy ra:\nh = 15 m',hint:'Em hãy gọi độ cao cần chọn là h. Khi động năng bằng 3 lần thế năng, phần năng lượng ứng với độ cao còn lại so với phần năng lượng đã chuyển thành động năng có quan hệ như thế nào?',wrongAnalysis:'Em chưa thiết lập đúng phương trình.'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'bao_toan_co_nang_qua_nhieu_trang_thai',tag:'L0_C10 – Bảo toàn cơ năng qua nhiều trạng thái',tagExplanation:'So sánh cơ năng của vật ở các trạng thái khác nhau để tìm vận tốc ban đầu.',question:'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 10 m/s².\nVận tốc ném ban đầu của bóng là bao nhiêu?',options:[{key:'A',text:'15 m/s'},{key:'B',text:'25 m/s'},{key:'C',text:'20 m/s'},{key:'D',text:'10 m/s'}],answer:'C',explanation:'📘 Giải thích đáp án:\nCơ năng khi bóng nảy lên đến độ cao 40 m:\nW = mg.40\nCơ năng ban đầu:\nBóng ở độ cao 20 m và có vận tốc ban đầu v0.\nBiểu thức:\nW = mg.20 + 1/2.m.v0²\nBảo toàn cơ năng:\nmg.20 + 1/2.m.v0² = mg.40\nRút gọn:\n1/2.v0² = g.(40 - 20)\nThay số:\n1/2.v0² = 10.20 = 200\nSuy ra:\nv0² = 400\nv0 = 20 m/s',hint:'Em hãy so sánh cơ năng ban đầu ở độ cao 20 m với cơ năng khi bóng nảy lên đến độ cao 40 m. Phần chênh lệch năng lượng liên quan đến yếu tố nào ban đầu?',wrongAnalysis:'Em chưa thiết lập đúng phương trình bảo toàn cơ năng.'}];
+
+const LEVEL_1_QUESTIONS=[{type:'drag_match',topic:'Khái niệm và công thức',knowledgeGroup:'cong_thuc_co_nang',question:'Hãy ghép mỗi đại lượng vật lí với công thức tương ứng.',pairs:[{left:'Động năng',right:'Wđ = 1/2.m.v²'},{left:'Thế năng trọng trường',right:'Wt = m.g.h'},{left:'Cơ năng',right:'W = Wđ + Wt'}],explanation:'Động năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nGhi nhớ:\nW = Wđ + Wt',hint:'💡 Gợi ý: Em hãy dựa vào ý nghĩa của từng đại lượng. Đại lượng liên quan đến chuyển động sẽ gắn với vận tốc; đại lượng liên quan đến độ cao sẽ gắn với h; còn cơ năng liên quan đến cả hai dạng năng lượng.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng công thức.',_answerBlock:'Động năng → Wđ = 1/2.m.v²\nThế năng trọng trường → Wt = m.g.h\nCơ năng → W = Wđ + Wt'},{type:'mcq',topic:'Khái niệm cơ năng',knowledgeGroup:'co_nang_vo_huong',question:'Hãy chọn thẻ mô tả đúng về cơ năng.',options:[{key:'A',text:'Cơ năng là đại lượng vô hướng.'},{key:'B',text:'Cơ năng là vectơ cùng hướng với vận tốc.'},{key:'C',text:'Cơ năng là vectơ cùng hướng với trọng lực.'},{key:'D',text:'Cơ năng chỉ phụ thuộc vào thời gian.'}],answer:'A',explanation:'Cơ năng là một dạng năng lượng.\nNăng lượng là đại lượng vô hướng, không có hướng như vectơ.\nDo đó, cơ năng không phải là vectơ cùng hướng với vận tốc hay trọng lực.',hint:'💡 Gợi ý: Em hãy nhớ cơ năng là một dạng năng lượng. Khi xét một dạng năng lượng, em cần xác định nó có hướng như vectơ hay chỉ có giá trị độ lớn.',wrongAnalysis:'Em nhầm cơ năng với các đại lượng vectơ.',_answerBlock:'A.\nCơ năng là đại lượng vô hướng.'},{type:'drag_tf',topic:'Bảo toàn cơ năng',knowledgeGroup:'bt_roi_tu_do',question:'Khi một vật rơi tự do và bỏ qua lực cản không khí, hãy kéo các phát biểu sau vào ô Đúng hoặc Sai.',statements:[{text:'Cơ năng của vật được bảo toàn.',answer:true},{text:'Tổng động năng và thế năng của vật không đổi.',answer:true},{text:'Cơ năng của vật luôn giảm trong quá trình rơi.',answer:false},{text:'Cơ năng của vật chỉ gồm động năng.',answer:false}],explanation:'Khi vật rơi tự do và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\nTrong quá trình rơi, thế năng giảm dần.\nĐộng năng tăng dần.\nTổng động năng và thế năng không đổi.\nCơ năng không chỉ gồm động năng mà gồm cả động năng và thế năng.',hint:'💡 Gợi ý: Em hãy chú ý điều kiện "rơi tự do" và "bỏ qua lực cản không khí". Trong quá trình rơi, độ cao và tốc độ thay đổi, nhưng tổng năng lượng cơ học có thay đổi không?',scoring:'all_or_nothing',wrongAnalysis:'Em chưa hiểu đúng bảo toàn cơ năng.',_answerBlock:'Phát biểu 1: Đúng.\nPhát biểu 2: Đúng.\nPhát biểu 3: Sai.\nPhát biểu 4: Sai.'},{type:'mcq',topic:'Con lắc đơn',knowledgeGroup:'con_lac_vi_tri_thap_nhat',question:'Xét một con lắc đơn dao động, bỏ qua lực cản không khí. Khi vật đi từ vị trí biên về vị trí thấp nhất thì:',options:[{key:'A',text:'Động năng giảm, thế năng tăng.'},{key:'B',text:'Động năng tăng, thế năng giảm.'},{key:'C',text:'Động năng và thế năng đều tăng.'},{key:'D',text:'Động năng và thế năng đều giảm.'}],answer:'B',explanation:'Khi con lắc đơn đi từ vị trí biên về vị trí thấp nhất:\n\nVật chuyển động nhanh dần, tức là tốc độ tăng → động năng tăng.\nĐồng thời vật đi xuống thấp hơn nên độ cao giảm → thế năng giảm.\nVì vậy, trong quá trình này:\nĐộng năng tăng\nThế năng giảm.',hint:'💡 Gợi ý: Em hãy quan sát vị trí của vật trên quỹ đạo con lắc. Vị trí nào có độ cao nhỏ nhất thì thế năng nhỏ nhất; vị trí nào vật chuyển động nhanh nhất thì động năng lớn nhất.',wrongAnalysis:'Em chưa phân tích đúng sự thay đổi tốc độ và độ cao trong quá trình con lắc đi từ biên về thấp nhất.'},{type:'drag_match',topic:'Chuyển hóa năng lượng',knowledgeGroup:'bien_doi_khi_roi',question:'Một quả bóng được ném ngang khỏi mặt bàn và rơi xuống sàn. Bỏ qua lực cản không khí.\nHãy ghép mỗi đại lượng với sự biến đổi phù hợp trong quá trình bóng rơi xuống.',pairs:[{left:'Động năng',right:'Tăng'},{left:'Thế năng',right:'Giảm'},{left:'Cơ năng',right:'Không đổi'}],explanation:'Đáp án đúng là:\nĐộng năng → Tăng\nThế năng → Giảm\nCơ năng → Không đổi\n\n📘 Giải thích đáp án:\nÝ chính:\nKhi quả bóng rơi xuống, độ cao của bóng giảm còn tốc độ của bóng tăng.\nPhân tích:\nĐộ cao giảm nên thế năng giảm.\nTốc độ của bóng tăng nên động năng tăng.\nBỏ qua lực cản không khí nên cơ năng được bảo toàn.',hint:'💡 Gợi ý: Em hãy xét quá trình quả bóng rơi xuống: độ cao giảm dần, tốc độ tăng dần. Từ đó suy ra dạng năng lượng nào tăng, dạng nào giảm và tổng cơ năng có đổi không.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng sự biến đổi.'},{type:'drag_tf',topic:'Bảo toàn cơ năng',knowledgeGroup:'vat_nem_len',question:'Một vật được ném thẳng đứng lên cao. Bỏ qua lực cản không khí. Hãy kéo các phát biểu sau vào ô Đúng hoặc Sai.',statements:[{text:'Tại vị trí cao nhất, vận tốc của vật bằng 0.',answer:true},{text:'Tại vị trí cao nhất, động năng của vật đạt giá trị cực đại.',answer:false},{text:'Trong quá trình chuyển động, cơ năng của vật không đổi.',answer:true},{text:'Khi vật đi lên, thế năng của vật giảm dần.',answer:false}],explanation:'Đáp án đúng là:\nPhát biểu 1: Đúng.\nPhát biểu 2: Sai.\nPhát biểu 3: Đúng.\nPhát biểu 4: Sai.\n\n📘 Giải thích đáp án:\nÝ chính:\nKhi vật được ném thẳng đứng lên cao, vận tốc của vật giảm dần trong quá trình đi lên.\nPhân tích:\nTại vị trí cao nhất, vận tốc của vật bằng 0.\nVì vận tốc bằng 0 nên động năng không đạt cực đại tại vị trí cao nhất.\nKhi vật đi lên, độ cao tăng nên thế năng tăng dần.\nBỏ qua lực cản không khí nên cơ năng của vật không đổi.',hint:'💡 Gợi ý: Em hãy xét từng giai đoạn của vật khi được ném lên cao.\nỞ vị trí cao nhất, vận tốc có đặc điểm gì? Khi bỏ qua lực cản, tổng động năng và thế năng có được bảo toàn không?',scoring:'all_or_nothing',wrongAnalysis:'Em chưa phân tích đúng.'},{type:'drag_match',topic:'Chuyển hóa năng lượng',knowledgeGroup:'chuyen_hoa_con_lac',question:'Hãy ghép quá trình chuyển động của con lắc với sự chuyển hóa năng lượng phù hợp.',pairs:[{left:'Từ vị trí cao xuống vị trí thấp nhất',right:'Thế năng giảm, động năng tăng'},{left:'Từ vị trí thấp nhất đi lên vị trí cao',right:'Động năng giảm, thế năng tăng'},{left:'Nếu bỏ qua lực cản',right:'Cơ năng không đổi'}],explanation:'Đáp án đúng là:\nTừ vị trí cao xuống vị trí thấp nhất → Thế năng giảm, động năng tăng\nTừ vị trí thấp nhất đi lên vị trí cao → Động năng giảm, thế năng tăng\nNếu bỏ qua lực cản → Cơ năng không đổi\n\n📘 Giải thích đáp án:\nÝ chính:\nTrong dao động của con lắc, động năng và thế năng chuyển hóa qua lại.\nPhân tích:\nKhi vật đi từ vị trí cao xuống vị trí thấp nhất, độ cao giảm nên thế năng giảm, vận tốc tăng nên động năng tăng.\nKhi vật đi từ vị trí thấp nhất lên vị trí cao, vận tốc giảm nên động năng giảm, độ cao tăng nên thế năng tăng.\nNếu bỏ qua lực cản, cơ năng của con lắc không đổi.',hint:'💡 Gợi ý: Em hãy so sánh hai chiều chuyển động của con lắc: khi vật đi xuống thấp hơn và khi vật đi lên cao hơn. Hai quá trình này có sự chuyển hóa năng lượng ngược nhau.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng sự chuyển hóa.'},{type:'fill_number',topic:'Tính thế năng',knowledgeGroup:'tinh_the_nang',question:'Một vật có khối lượng m = 1 kg ở độ cao h = 5 m so với mặt đất. Chọn mốc thế năng tại mặt đất. Lấy g = 10 m/s². Thế năng trọng trường của vật bằng bao nhiêu J?',answer:50,accept:[50],explanation:'Đáp án đúng là:\n50 J.\n\n📘 Giải thích đáp án:\nCông thức:\nWt = m.g.h\nThay số:\nWt = 1.10.5 = 50 J',hint:'💡 Gợi ý: Em hãy xác định đúng ba đại lượng cần dùng để tính thế năng trọng trường: khối lượng, gia tốc trọng trường và độ cao so với mốc thế năng.',wrongAnalysis:'Em tính sai thế năng.'},{type:'fill_number',topic:'Tính động năng',knowledgeGroup:'dong_nang_khi_roi',question:'Một vật có khối lượng 1 kg rơi tự do từ độ cao 50 cm xuống đất. Lấy g = 10 m/s², bỏ qua lực cản không khí. Động năng của vật ngay trước khi chạm đất bằng bao nhiêu J?',answer:5,accept:[5],explanation:'Đáp án đúng là:\n5 J.\n\n📘 Giải thích đáp án:\nĐổi đơn vị:\n50 cm = 0,5 m\nÝ chính:\nVật rơi tự do từ trạng thái nghỉ và bỏ qua lực cản không khí.\nThế năng ban đầu chuyển hóa thành động năng ngay trước khi vật chạm đất.\nCông thức:\nWđ = m.g.h\nThay số:\nWđ = 1.10.0,5 = 5 J',hint:'💡 Gợi ý: Em hãy nhớ đổi đơn vị 50 cm.\nSau đó xét xem thế năng ban đầu đã chuyển hóa thành dạng năng lượng nào ngay trước khi vật chạm đất.',wrongAnalysis:'Em tính sai động năng.'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'ti_le_dong_the_nang',question:'Một vật được ném thẳng đứng lên từ mặt đất với vận tốc ban đầu v0 = 10 m/s. Bỏ qua lực cản không khí. Khi động năng bằng thế năng, tốc độ của vật gần đúng bằng bao nhiêu?',options:[{key:'A',text:'5,0 m/s.'},{key:'B',text:'7,1 m/s.'},{key:'C',text:'10 m/s.'},{key:'D',text:'14,1 m/s.'}],answer:'B',explanation:'Đáp án đúng là:\nB. 7,1 m/s.\n\n📘 Giải thích đáp án:\nCơ năng ban đầu:\nW = 1/2.m.v0²\nKhi động năng bằng thế năng:\nWđ = Wt\nSuy ra:\nĐộng năng bằng một nửa cơ năng ban đầu.\nTa có:\n1/2.m.v² = 1/2.(1/2.m.v0²)\nRút gọn:\nv² = v0²/2\nSuy ra:\nv = v0/√2\nThay số:\nv = 10/√2 ≈ 7,1 m/s',hint:'Em hãy xét cơ năng ban đầu của vật khi vừa được ném lên từ mặt đất. Khi động năng bằng thế năng, động năng chiếm bao nhiêu phần của tổng cơ năng ban đầu? Từ đó so sánh tốc độ lúc đó với vận tốc ban đầu.',wrongAnalysis:'Em chưa thiết lập đúng phương trình.'}];
+const LEVEL_2_QUESTIONS=[{type:'drag_match',topic:'Khái niệm cơ năng',knowledgeGroup:'khai_niem_co_nang',question:'Hãy ghép mỗi đại lượng vật lí với mô tả tương ứng.',pairs:[{left:'Động năng',right:'Năng lượng liên quan đến chuyển động của vật'},{left:'Thế năng trọng trường',right:'Năng lượng liên quan đến vị trí của vật trong trọng trường'},{left:'Cơ năng',right:'Tổng động năng và thế năng của vật'}],explanation:'📘 Giải thích đáp án:\nĐộng năng là năng lượng mà vật có được do chuyển động.\nThế năng trọng trường là năng lượng liên quan đến vị trí của vật trong trọng trường.\nCơ năng là tổng động năng và thế năng của vật.\nW = Wđ + Wt',hint:'💡 Gợi ý: Em hãy nhớ động năng gắn với chuyển động, thế năng trọng trường gắn với độ cao, còn cơ năng liên quan đến cả hai dạng năng lượng.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng mô tả.'},{type:'drag_tf',topic:'Bảo toàn cơ năng',knowledgeGroup:'bao_toan_co_nang',question:'Khi một vật chuyển động trong trọng trường và bỏ qua lực cản không khí, hãy kéo các phát biểu sau vào ô Đúng hoặc Sai.',statements:[{text:'Cơ năng của vật được bảo toàn.',answer:true},{text:'Cơ năng của vật bằng tổng động năng và thế năng.',answer:true},{text:'Tổng động năng và thế năng của vật không đổi.',answer:true},{text:'Cơ năng của vật luôn giảm trong quá trình chuyển động.',answer:false}],explanation:'Đáp án đúng là:\nPhát biểu 1: Đúng.\nPhát biểu 2: Đúng.\nPhát biểu 3: Đúng.\nPhát biểu 4: Sai.\n\n📘 Giải thích đáp án:\n\nÝ chính:\nKhi vật chuyển động trong trọng trường và bỏ qua lực cản không khí, cơ năng của vật được bảo toàn.\n\nPhân tích:\nĐộng năng và thế năng có thể thay đổi trong quá trình chuyển động.\n\nTuy nhiên, tổng động năng và thế năng không đổi.\n\nLưu ý:\nPhát biểu "cơ năng luôn giảm trong quá trình chuyển động" là sai.',hint:'💡 Gợi ý: Em hãy chú ý điều kiện "bỏ qua lực cản không khí". Khi đó, động năng và thế năng có thể thay đổi, nhưng tổng động năng và thế năng có thay đổi không?',scoring:'all_or_nothing',wrongAnalysis:'Em chưa hiểu đúng bảo toàn cơ năng.'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'bao_toan_co_nang',question:'Một vật được thả rơi tự do từ độ cao h so với mặt đất. Chọn mốc thế năng tại mặt đất. Ngay lúc vừa thả, vận tốc của vật bằng 0. Phát biểu nào sau đây đúng?',options:[{key:'A',text:'Cơ năng của vật bằng thế năng tại vị trí thả.'},{key:'B',text:'Cơ năng của vật bằng 0.'},{key:'C',text:'Cơ năng của vật chỉ bằng động năng.'},{key:'D',text:'Cơ năng của vật nhỏ hơn thế năng tại vị trí thả.'}],answer:'A',explanation:'Đáp án đúng là:\nA.\nCơ năng của vật bằng thế năng tại vị trí thả.\n\n📘 Giải thích đáp án:\n\nNguyên lí:\nCơ năng của vật bằng tổng động năng và thế năng.\n\nCông thức:\nW = Wđ + Wt\n\nNgay lúc vừa thả:\nVận tốc của vật bằng 0 nên động năng bằng 0.\n\nSuy ra:\nW = 0 + Wt = Wt',hint:'💡 Gợi ý: Em hãy chú ý rằng ngay lúc vừa thả, vật có vận tốc bằng 0. Từ đó, hãy xác định động năng lúc đó bằng bao nhiêu rồi suy ra cơ năng gồm phần nào.',wrongAnalysis:'Em chưa tính toán đúng cơ năng tại vị trí thả.'},{type:'drag_match',topic:'Chuyển hóa năng lượng',knowledgeGroup:'chuyen_hoa_nang_luong',question:'Một quả bóng được ném ngang khỏi mặt bàn và rơi xuống sàn. Bỏ qua lực cản không khí. Hãy ghép đại lượng với sự biến đổi phù hợp khi bóng đang rơi.',pairs:[{left:'Động năng',right:'Tăng'},{left:'Thế năng',right:'Giảm'},{left:'Cơ năng',right:'Không đổi'}],explanation:'Đáp án đúng là:\nĐộng năng → Tăng.\nThế năng → Giảm.\nCơ năng → Không đổi.\n\n📘 Giải thích đáp án:\n\nÝ chính:\nKhi quả bóng rơi xuống, độ cao của bóng giảm còn tốc độ của bóng tăng.\n\nPhân tích:\nĐộ cao giảm nên thế năng giảm.\n\nTốc độ của bóng tăng nên động năng tăng.\n\nBỏ qua lực cản không khí nên cơ năng được bảo toàn.',hint:'💡 Gợi ý: Em hãy quan sát quá trình quả bóng đang rơi: độ cao giảm còn tốc độ tăng. Sau đó, hãy ghép từng đại lượng với sự biến đổi phù hợp và nhớ rằng bỏ qua lực cản thì cơ năng được bảo toàn.',scoring:'all_or_nothing',wrongAnalysis:'Em chưa ghép đúng sự biến đổi.'},{type:'mcq',topic:'Chuyển hóa năng lượng',knowledgeGroup:'chuyen_hoa_nang_luong',question:'Một con lắc đơn dao động, bỏ qua lực cản không khí. Khi vật đi từ vị trí thấp nhất lên vị trí cao hơn, phát biểu nào sau đây đúng?',options:[{key:'A',text:'Động năng giảm, thế năng tăng.'},{key:'B',text:'Động năng tăng, thế năng giảm.'},{key:'C',text:'Cả động năng và thế năng đều tăng.'},{key:'D',text:'Cơ năng giảm dần về 0.'}],answer:'A',explanation:'Đáp án đúng là:\nA. Động năng giảm, thế năng tăng.\n\n📘 Giải thích đáp án:\n\nÝ chính:\nKhi con lắc đi từ vị trí thấp nhất lên vị trí cao hơn, vật chuyển động chậm dần và độ cao tăng.\n\nPhân tích:\nVận tốc giảm nên động năng giảm.\n\nĐộ cao tăng nên thế năng tăng.\n\nNếu bỏ qua lực cản không khí, cơ năng của con lắc không đổi.',hint:'💡 Gợi ý: Em hãy xét quá trình con lắc đi từ vị trí thấp nhất lên vị trí cao hơn. Khi đó, vận tốc của vật giảm còn độ cao tăng, nên động năng và thế năng thay đổi như thế nào?',wrongAnalysis:'Em chưa phân tích đúng.'},{type:'fill_number',topic:'Tính cơ năng',knowledgeGroup:'van_dung_cong_thuc',question:'Một quả bóng nhỏ có khối lượng 100 g được ném theo phương ngang với vận tốc ban đầu 4 m/s từ độ cao 1 m so với sàn. Chọn mốc thế năng tại sàn. Lấy g = 10 m/s², bỏ qua lực cản không khí.\nCơ năng của quả bóng lúc bắt đầu rời khỏi bàn là bao nhiêu J?',answer:1.8,accept:[1.8,'1,8','1.8'],explanation:'Đáp án đúng là:\n1,8 J.\n\n📘 Giải thích đáp án:\n\nĐổi đơn vị:\n100 g = 0,1 kg\n\nĐộng năng ban đầu:\nWđ = 1/2.m.v²\n\nThay số:\nWđ = 1/2.0,1.4² = 0,8 J\n\nThế năng ban đầu:\nWt = m.g.h\n\nThay số:\nWt = 0,1.10.1 = 1 J\n\nCơ năng:\nW = Wđ + Wt\n\nThay số:\nW = 0,8 + 1 = 1,8 J',hint:'💡 Gợi ý: Em hãy nhớ cơ năng lúc bóng rời khỏi bàn bằng tổng động năng và thế năng. Trước khi tính, hãy đổi khối lượng từ gam sang kilôgam.',wrongAnalysis:'Em tính sai cơ năng.',unit:'J'},{type:'mcq',topic:'Bảo toàn cơ năng',knowledgeGroup:'van_dung_cong_thuc',question:'Một vật có khối lượng 500 g được thả rơi từ độ cao 30 m so với mặt đất. Lấy g = 10 m/s². Chọn mốc thế năng tại mặt đất. Khi động năng của vật bằng 75 J thì thế năng của vật bằng bao nhiêu?',options:[{key:'A',text:'25 J.'},{key:'B',text:'50 J.'},{key:'C',text:'75 J.'},{key:'D',text:'150 J.'}],answer:'C',explanation:'Đáp án đúng là:\nC. 75 J.\n\n📘 Giải thích đáp án:\n\nĐổi đơn vị:\n500 g = 0,5 kg\n\nVì vật được thả rơi từ trạng thái nghỉ nên cơ năng ban đầu bằng thế năng tại độ cao 30 m.\n\nCơ năng ban đầu:\nW = m.g.h\n\nThay số:\nW = 0,5.10.30 = 150 J\n\nKhi động năng bằng 75 J:\nW = Wđ + Wt\n\nSuy ra:\nWt = W - Wđ\n\nThay số:\nWt = 150 - 75 = 75 J',hint:'💡 Gợi ý: Em hãy tính cơ năng ban đầu của vật tại độ cao 30 m. Sau đó dùng quan hệ: cơ năng = động năng + thế năng để tìm phần còn lại.',wrongAnalysis:'Em chưa áp dụng đúng bảo toàn cơ năng.'},{type:'fill_number',topic:'Tính toán năng lượng',knowledgeGroup:'van_dung_cong_thuc',question:'Một vật có khối lượng 500 g rơi tự do không vận tốc đầu từ độ cao 100 m xuống đất. Lấy g = 10 m/s², bỏ qua lực cản không khí. Động năng của vật sau khi rơi được quãng đường 60 m là bao nhiêu J?',answer:300,accept:[300],explanation:'Đáp án đúng là:\n300 J.\n\n📘 Giải thích đáp án:\n\nĐổi đơn vị:\n500 g = 0,5 kg\n\nÝ chính:\nKhi vật rơi tự do, phần thế năng bị giảm sẽ chuyển thành động năng.\n\nVật đã rơi được:\ns = 60 m\n\nĐộng năng sau khi rơi được 60 m:\nWđ = m.g.s\n\nThay số:\nWđ = 0,5.10.60 = 300 J',hint:'💡 Gợi ý: Em hãy chú ý rằng khi vật rơi tự do, phần thế năng bị giảm sẽ chuyển thành động năng. Ở câu này, cần dùng quãng đường vật đã rơi được, không phải toàn bộ độ cao ban đầu.',wrongAnalysis:'Em tính sai động năng.'},{type:'slider',topic:'Bảo toàn cơ năng',knowledgeGroup:'van_dung_cong_thuc',question:'Một viên bi được thả không vận tốc đầu từ đỉnh một mặt phẳng nghiêng cao 40 cm. Bỏ qua ma sát và lực cản không khí.\nHãy kéo thanh trượt để chọn độ cao của viên bi so với chân dốc khi thế năng của viên bi bằng 3 lần động năng.',min:0,max:40,step:5,answer:30,unit:'cm',explanation:'Đáp án đúng là:\n30 cm.\n\n📘 Giải thích đáp án:\n\nÝ chính:\nCơ năng ban đầu tương ứng với độ cao 40 cm.\n\nĐiều kiện:\nThế năng bằng 3 lần động năng.\n\nSuy ra:\nThế năng chiếm 3 phần.\n\nĐộng năng chiếm 1 phần.\n\nTổng cơ năng gồm 4 phần.\n\nTỉ lệ:\nThế năng chiếm 3/4 cơ năng.\n\nĐộ cao cần chọn:\nh = 3/4.40 = 30 cm',hint:'💡 Gợi ý: Em hãy xem cơ năng ban đầu tương ứng với độ cao 40 cm. Khi thế năng bằng 3 lần động năng, hãy suy nghĩ xem thế năng chiếm mấy phần trong tổng cơ năng.',wrongAnalysis:'Em chưa thiết lập đúng phương trình.'},{type:'fill_number',topic:'Con lắc đơn',knowledgeGroup:'van_dung_cong_thuc',question:'Một con lắc đơn có dây treo dài 1 m, vật nặng có khối lượng 0,5 kg. Kéo vật đến vị trí dây treo lệch phương thẳng đứng một góc 60° rồi thả nhẹ. Lấy g = 10 m/s², bỏ qua lực cản. Chọn mốc thế năng tại vị trí thấp nhất. Động năng của vật khi đi qua vị trí thấp nhất bằng bao nhiêu J?',answer:2.5,accept:[2.5,2.50],explanation:'📘 Giải thích đáp án:\nĐộ cao ban đầu của vật so với vị trí thấp nhất là:\nh = l.(1 - cos60°)\nh = 1.(1 - 0,5) = 0,5 m\nThế năng ban đầu của vật là:\nWt = m.g.h\nWt = 0,5.10.0,5 = 2,5 J\nVật được thả nhẹ nên động năng ban đầu bằng 0.\nBỏ qua lực cản nên cơ năng được bảo toàn.\nKhi vật đi qua vị trí thấp nhất, thế năng ban đầu đã chuyển hóa thành động năng.\nVì vậy, động năng của vật tại vị trí thấp nhất là 2,5 J.',hint:'💡 Gợi ý: Em hãy tìm độ cao ban đầu của vật so với vị trí thấp nhất. Khi vật đi qua vị trí thấp nhất, thế năng ban đầu đã chuyển hóa thành động năng.',wrongAnalysis:'Em chưa áp dụng đúng bảo toàn cơ năng cho con lắc.',unit:'J'}];
+const LEVEL_3_QUESTIONS=[{type:'mcq',topic:'Khái niệm cơ năng',knowledgeGroup:'khai_niem_co_nang',question:'Phát biểu nào sau đây đúng về cơ năng của một vật?',options:[{key:'A',text:'Cơ năng là đại lượng vô hướng và có thể âm, dương hoặc bằng không tùy theo mốc thế năng.'},{key:'B',text:'Cơ năng là đại lượng vectơ và luôn dương.'},{key:'C',text:'Cơ năng chỉ phụ thuộc vào động năng của vật.'},{key:'D',text:'Cơ năng luôn bằng thế năng của vật.'}],answer:'A',explanation:'📘 Giải thích: Cơ năng là tổng động năng và thế năng của vật: W = Wđ + Wt. Động năng và thế năng đều là đại lượng vô hướng nên cơ năng cũng là đại lượng vô hướng. Vì thế năng phụ thuộc vào mốc thế năng được chọn, nên giá trị cơ năng có thể âm, dương hoặc bằng không. Vì vậy đáp án đúng là A.',hint:'💡 Gợi ý: Hãy nhớ cơ năng được tạo từ những dạng năng lượng nào. Cơ năng là đại lượng vô hướng hay vectơ? Giá trị thế năng có phụ thuộc vào mốc chọn hay không?',wrongAnalysis:'Em chưa hiểu rõ bản chất cơ năng.'},{type:'mcq',topic:'Mốc thế năng',knowledgeGroup:'khai_niem_co_nang',question:'Vì sao giá trị cơ năng của một vật có thể thay đổi khi chọn mốc thế năng khác nhau?',options:[{key:'A',text:'Vì thế năng phụ thuộc vào mốc thế năng được chọn.'},{key:'B',text:'Vì động năng luôn thay đổi khi đổi mốc thế năng.'},{key:'C',text:'Vì khối lượng của vật thay đổi theo mốc thế năng.'},{key:'D',text:'Vì vận tốc của vật luôn bằng 0 khi đổi mốc thế năng.'}],answer:'A',explanation:'📘 Giải thích: Động năng không đổi khi đổi mốc, thế năng thay đổi do phụ thuộc vào mốc được chọn.',hint:'Em hãy so sánh động năng và thế năng: động năng phụ thuộc vào đại lượng nào, thế năng phụ thuộc vào yếu tố nào khi chọn mốc khác?',wrongAnalysis:'Em nhầm giữa ảnh hưởng của mốc thế năng.'},{type:'mcq',topic:'Bảo toàn cơ năng phức tạp',knowledgeGroup:'bao_toan_co_nang',question:'Một quả bóng được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Sau khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng.\nNhận xét nào sau đây đúng?',options:[{key:'A',text:'Ban đầu quả bóng phải có thêm động năng do được ném xuống.'},{key:'B',text:'Ban đầu quả bóng đứng yên nên không có cơ năng.'},{key:'C',text:'Sau va chạm, cơ năng của bóng bằng 0.'},{key:'D',text:'Bóng nảy lên cao hơn vì trọng lực sinh thêm năng lượng.'}],answer:'A',explanation:'📘 Giải thích: Bóng nảy lên 40m > 20m nên ban đầu phải có thêm động năng do được ném xuống.',hint:'Em hãy suy nghĩ: nếu quả bóng chỉ được thả từ độ cao 20 m và không mất mát cơ năng, sau khi nảy lên nó có thể đạt độ cao lớn hơn 20 m không? Vậy tại sao bóng lại nảy lên đến 40 m?',wrongAnalysis:'Em chưa nhận ra ném xuống tạo thêm động năng.'},{type:'fill_number',topic:'Tính vận tốc',knowledgeGroup:'van_dung_cong_thuc',question:'Một quả bóng nhỏ có khối lượng 100 g được ném theo phương ngang với vận tốc ban đầu 4 m/s từ độ cao 1 m so với sàn. Lấy g = 10 m/s², bỏ qua lực cản không khí. Tốc độ của quả bóng khi chạm sàn bằng bao nhiêu m/s?',answer:6,accept:[6],explanation:'Đáp án đúng là: 6 m/s.\n\n📘 Giải thích đáp án:\nNguyên lí: Bỏ qua lực cản không khí nên cơ năng được bảo toàn.\n\nCách tính: Tốc độ khi chạm sàn thỏa mãn:\nv² = v0² + 2gh\n\nThay số:\nv² = 4² + 2.10.1 = 16 + 20 = 36\n\nSuy ra:\nv = 6 m/s',hint:'💡 Gợi ý: Hãy dùng định luật bảo toàn cơ năng. Tốc độ khi chạm sàn phụ thuộc vào vận tốc ban đầu theo phương ngang và phần thế năng chuyển hóa thành động năng khi bóng rơi xuống.',wrongAnalysis:'Em tính sai vận tốc.',unit:'m/s'},{type:'mcq',topic:'Tính vận tốc',knowledgeGroup:'van_dung_cong_thuc',question:'Một viên bi được thả không vận tốc đầu từ đỉnh một mặt phẳng nghiêng cao 40 cm. Bỏ qua ma sát và lực cản không khí. Lấy g = 10 m/s². Vận tốc của viên bi tại chân dốc gần bằng:',options:[{key:'A',text:'2 m/s.'},{key:'B',text:'2√2 m/s.'},{key:'C',text:'4 m/s.'},{key:'D',text:'8 m/s.'}],answer:'B',explanation:'Đáp án đúng là: B. 2√2 m/s.\n\n📘 Giải thích đáp án:\nNguyên lí: Viên bi được thả không vận tốc đầu từ độ cao 40 cm. Bỏ qua ma sát và lực cản nên thế năng ban đầu chuyển hóa thành động năng tại chân dốc.\n\nCách tính:\nmgh = 1/2mv²\n\nSuy ra:\nv = √(2gh)\n\nĐổi đơn vị:\n40 cm = 0,4 m\n\nThay số:\nv = √(2.10.0,4) = √8 = 2√2 m/s',hint:'💡 Gợi ý: Ở chân dốc, thế năng ban đầu của viên bi đã chuyển hóa thành động năng. Trước khi tính, hãy đổi 40 cm thành mét.',wrongAnalysis:'Em tính sai vận tốc.'},{type:'mcq',topic:'So sánh năng lượng',knowledgeGroup:'bao_toan_co_nang',question:'Một viên bi được thả không vận tốc đầu từ đỉnh một mặt phẳng nghiêng cao 40 cm. Bỏ qua ma sát và lực cản không khí. Lấy g = 10 m/s².\nKhi viên bi có vận tốc 2 m/s, nhận xét nào sau đây đúng?',options:[{key:'A',text:'Động năng bằng thế năng.'},{key:'B',text:'Động năng lớn gấp 2 lần thế năng.'},{key:'C',text:'Thế năng lớn gấp 3 lần động năng.'},{key:'D',text:'Cơ năng bằng 0.'}],answer:'A',explanation:'Đáp án đúng là: A. Động năng bằng thế năng.\n\n📘 Giải thích đáp án:\nNguyên lí: Cơ năng ban đầu của viên bi là tổng động năng và thế năng.\n\nCách tính:\nW = mgH = m.10.0,4 = 4m\n\nKhi v = 2 m/s:\nWđ = 1/2.m.2² = 2m\n\nThế năng còn lại:\nWt = W - Wđ = 4m - 2m = 2m\n\nSo sánh:\nWđ = Wt',hint:'💡 Gợi ý: Hãy xem cơ năng ban đầu ở độ cao 40 cm là tổng năng lượng của viên bi. Sau đó so sánh động năng tại v = 2 m/s với phần năng lượng còn lại để tìm quan hệ giữa động năng và thế năng.',wrongAnalysis:'Em chưa so sánh đúng.'},{type:'fill_number',topic:'Con lắc đơn',knowledgeGroup:'van_dung_cong_thuc',question:'Một con lắc đơn có dây treo dài 0,64 m, vật nặng có khối lượng 1 kg. Kéo vật đến vị trí dây treo lệch phương thẳng đứng một góc 30° rồi thả nhẹ. Lấy g = 10 m/s², bỏ qua lực cản. Chọn mốc thế năng tại vị trí thấp nhất. Thế năng của vật tại vị trí ban đầu xấp xỉ bằng bao nhiêu J?',answer:0.86,accept:[0.86],explanation:'Đáp án đúng là: 0,86 J.\n\n📘 Giải thích đáp án:\nNguyên lí: Chọn mốc thế năng tại vị trí thấp nhất.\n\nCách tính độ cao:\nKhi dây lệch phương thẳng đứng góc 30°, vật cao hơn vị trí thấp nhất một đoạn:\nh = l.(1 - cos30°)\n\nThay số:\nh = 0,64.(1 - 0,866) ≈ 0,086 m\n\nTính thế năng:\nWt = m.g.h ≈ 1.10.0,086 = 0,86 J',hint:'💡 Gợi ý: Chọn mốc thế năng tại vị trí thấp nhất. Khi dây lệch góc 30°, hãy tìm độ cao tăng thêm của vật so với vị trí thấp nhất rồi dùng công thức tính thế năng.',wrongAnalysis:'Em tính sai thế năng.',unit:'J'},{type:'mcq',topic:'Ném xuống',knowledgeGroup:'van_dung_cong_thuc',question:'Một quả bóng khối lượng 200 g được ném thẳng đứng xuống dưới từ độ cao 20 m so với mặt đất. Khi chạm đất, bóng nảy lên đến độ cao 40 m. Bỏ qua lực cản không khí và coi va chạm không làm mất mát cơ năng. Lấy g = 10 m/s². Vận tốc ném ban đầu của bóng là bao nhiêu?',options:[{key:'A',text:'15 m/s.'},{key:'B',text:'20 m/s.'},{key:'C',text:'25 m/s.'},{key:'D',text:'10 m/s.'}],answer:'B',explanation:'Đáp án đúng là: B. 20 m/s.\n\n📘 Giải thích đáp án:\nNguyên lí: Bỏ qua lực cản và coi va chạm không làm mất mát cơ năng nên cơ năng được bảo toàn.\n\nLập phương trình:\nBan đầu bóng ở độ cao 20 m và có vận tốc v0.\nSau đó bóng nảy lên đến độ cao 40 m.\n\nTa có:\nmg.20 + 1/2.m.v0² = mg.40\n\nRút gọn:\n1/2.v0² = 10.(40 - 20) = 200\n\nSuy ra:\nv0² = 400\nv0 = 20 m/s',hint:'💡 Gợi ý: Hãy so sánh cơ năng lúc bóng bắt đầu được ném xuống từ độ cao 20 m với cơ năng tương ứng khi bóng nảy lên đến độ cao 40 m.\nPhần năng lượng chênh lệch liên quan đến yếu tố nào ban đầu?',wrongAnalysis:'Em chưa thiết lập đúng bảo toàn cơ năng.'},{type:'mcq',topic:'Con lắc đơn vận tốc',knowledgeGroup:'van_dung_cong_thuc',question:'Một con lắc đơn có chiều dài l = 1 m. Kéo cho dây làm với phương thẳng đứng một góc 45° rồi thả tự do. Bỏ qua lực cản không khí. Lấy g = 10 m/s². Độ lớn vận tốc của con lắc khi dây làm với phương thẳng đứng một góc 30° gần bằng giá trị nào sau đây?',options:[{key:'A',text:'1,20 m/s.'},{key:'B',text:'1,78 m/s.'},{key:'C',text:'2,50 m/s.'},{key:'D',text:'3,10 m/s.'}],answer:'B',explanation:'Đáp án đúng là: B. 1,78 m/s.\n\n📘 Giải thích đáp án:\nNguyên lí: Khi con lắc chuyển từ vị trí dây hợp với phương thẳng đứng góc 45° đến vị trí góc 30°, vật đi xuống thấp hơn nên thế năng giảm.\n\nCách tính:\nPhần thế năng giảm chuyển hóa thành động năng:\n1/2mv² = mgl.(cos30° - cos45°)\n\nSuy ra:\nv = √[2gl.(cos30° - cos45°)]\n\nThay số:\nv = √[2.10.1.(0,866 - 0,707)]\n\nTính kết quả:\nv = √3,18 ≈ 1,78 m/s',hint:'💡 Gợi ý: Khi con lắc chuyển từ góc 45° đến góc 30°, một phần thế năng giảm đi chuyển thành động năng. Hãy so sánh độ cao của vật ở hai vị trí góc này.',wrongAnalysis:'Em tính sai vận tốc.'},{type:'slider',topic:'Hao hụt cơ năng',knowledgeGroup:'bao_toan_co_nang',question:'Một quả bóng có khối lượng 200 g được ném thẳng đứng lên cao với vận tốc ban đầu 15 m/s. Bóng đạt độ cao cực đại 10 m so với vị trí ném. Lấy g = 10 m/s². Do lực cản không khí, cơ năng của bóng bị hao hụt xấp xỉ bao nhiêu phần trăm so với cơ năng ban đầu?',min:0,max:30,step:1,answer:11,unit:'%',explanation:'Đáp án đúng là: 11%.\n\n📘 Giải thích đáp án:\nCơ năng ban đầu:\nW1 = 1/2mv² = 1/2.0,2.15² = 22,5 J\n\nCơ năng ở độ cao cực đại:\nỞ độ cao cực đại, vận tốc của bóng bằng 0 nên cơ năng còn lại chỉ là thế năng.\n\nW2 = mgh = 0,2.10.10 = 20 J\n\nPhần cơ năng hao hụt:\nΔW = W1 - W2 = 22,5 - 20 = 2,5 J\n\nTỉ lệ hao hụt:\n2,5/22,5 x 100% ≈ 11%',hint:'💡 Gợi ý: Hãy xác định hai mốc năng lượng: lúc bóng vừa được ném lên và lúc bóng đạt độ cao cực đại 10 m. Ở độ cao cực đại, vận tốc của bóng bằng 0, nên cơ năng còn lại chỉ là thế năng. Hãy so sánh hai cơ năng để xác định phần năng lượng bị hao hụt.',wrongAnalysis:'Em chưa tính phần trăm hao hụt đúng.'}];
+const KNOWLEDGE_GROUPS={khai_niem_co_nang:'Khái niệm cơ năng',bao_toan_co_nang_khi_roi_tu_do:'Bảo toàn cơ năng khi rơi tự do',bien_doi_nang_luong_khi_vat_roi:'Biến đổi năng lượng khi vật rơi',chuyen_hoa_nang_luong_khi_vat_di_len:'Chuyển hóa năng lượng khi vật đi lên',dieu_kien_bao_toan_co_nang:'Điều kiện bảo toàn cơ năng',tinh_dong_nang_tu_co_nang:'Tính động năng từ cơ năng',co_nang_ban_dau_cua_vat_nem_len:'Cơ năng ban đầu của vật ném lên',dong_nang_tu_do_giam_the_nang:'Động năng từ độ giảm thế năng',ti_le_dong_nang_va_the_nang:'Tỉ lệ động năng và thế năng',bao_toan_co_nang_qua_nhieu_trang_thai:'Bảo toàn cơ năng qua nhiều trạng thái',cong_thuc_co_nang:'Công thức động năng, thế năng và cơ năng',co_nang_vo_huong:'Cơ năng là đại lượng vô hướng',bt_roi_tu_do:'Bảo toàn cơ năng trong rơi tự do',con_lac_vi_tri_thap_nhat:'Động năng lớn nhất, thế năng nhỏ nhất của con lắc',bien_doi_khi_roi:'Sự biến đổi động năng, thế năng khi vật rơi',vat_nem_len:'Cơ năng và năng lượng của vật ném thẳng đứng lên',chuyen_hoa_con_lac:'Sự chuyển hóa động năng và thế năng của con lắc',tinh_the_nang:'Tính thế năng trọng trường',dong_nang_khi_roi:'Tính động năng của vật khi rơi',ti_le_dong_the_nang:'Quan hệ tỉ lệ giữa động năng và thế năng',chuyen_hoa_nang_luong:'Sự chuyển hóa năng lượng',bao_toan_co_nang:'Bảo toàn cơ năng',van_dung_cong_thuc:'Vận dụng công thức'};
+
+const LEVEL_NAMES=['Cấp độ 0 – Cơ bản','Cấp độ 1 – Nhận biết','Cấp độ 2 – Vận dụng','Cấp độ 3 – Nâng cao'];
+const ALL_LEVELS=[LEVEL_0_QUESTIONS,LEVEL_1_QUESTIONS,LEVEL_2_QUESTIONS,LEVEL_3_QUESTIONS];
+
+// ===== GAME STATE =====
+let currentQ=0,attempts=0,score=0,correctFirst=0,correctSecond=0,incorrect=0;
+let timerInterval=null,elapsedSeconds=0,playerName='';
+let topicResults={},questionResults=[],allRecords=[];
+let questionAnswered=false;
+let dragState={matchAnswers:{},tfAnswers:{}};
+let currentQuestions=LEVEL_0_QUESTIONS;
+let currentLevelId=0;
+let nextLevelName='',nextLevelQuestions=null;
+let QUESTIONS=LEVEL_0_QUESTIONS;
+let perfUnlocked=false;
+
+// ===== NORMALIZE GROUP =====
+function normalizeGroup(group){
+  const map={
+    'bao_toan_co_nang_khi_roi_tu_do':'bao_toan_co_nang',
+    'bien_doi_nang_luong_khi_vat_roi':'chuyen_hoa_nang_luong',
+    'chuyen_hoa_nang_luong_khi_vat_di_len':'chuyen_hoa_nang_luong',
+    'dieu_kien_bao_toan_co_nang':'bao_toan_co_nang',
+    'tinh_dong_nang_tu_co_nang':'van_dung_cong_thuc',
+    'co_nang_ban_dau_cua_vat_nem_len':'van_dung_cong_thuc',
+    'dong_nang_tu_do_giam_the_nang':'van_dung_cong_thuc',
+    'ti_le_dong_nang_va_the_nang':'van_dung_cong_thuc',
+    'bao_toan_co_nang_qua_nhieu_trang_thai':'bao_toan_co_nang'
+  };
+  return map[group] || group;
+}
+
+// ===== AUDIO =====
+const AudioCtx=window.AudioContext||window.webkitAudioContext;let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new AudioCtx();return audioCtx}
+function playSound(freq,dur,type='sine'){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=freq;g.gain.value=.15;o.connect(g);g.connect(a.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,a.currentTime+dur);o.stop(a.currentTime+dur)}catch(e){}}
+function soundCorrect(){playSound(523,.1);setTimeout(()=>playSound(659,.1),100);setTimeout(()=>playSound(784,.15),200)}
+function soundWrong(){playSound(200,.2,'square');setTimeout(()=>playSound(160,.25,'square'),150)}
+function soundComplete(){[523,587,659,698,784].forEach((f,i)=>setTimeout(()=>playSound(f,.15),i*100))}
+
+// ===== DATA SDK =====
+const dataHandler={onDataChanged(data){allRecords=data;renderLeaderboard();if(perfUnlocked)renderPerfDashboard()}};
+async function initSDK(){const r=await window.dataSdk.init(dataHandler);if(!r.isOk)console.error('SDK init failed')}
+initSDK();
+
+// ===== SCREENS =====
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);el.classList.add('active');el.classList.remove('fade-in');void el.offsetWidth;el.classList.add('fade-in');
+  if(id==='screen-leaderboard')renderLeaderboard();
+}
+
+// ===== TIMER =====
+function startTimer(){elapsedSeconds=0;updateTimerDisplay();timerInterval=setInterval(()=>{elapsedSeconds++;updateTimerDisplay()},1000)}
+function stopTimer(){clearInterval(timerInterval)}
+function updateTimerDisplay(){const m=String(Math.floor(elapsedSeconds/60)).padStart(2,'0'),s=String(elapsedSeconds%60).padStart(2,'0');document.getElementById('timer-display').textContent=m+':'+s}
+
+// ===== START / RESET =====
+function startGame(){
+  playerName=document.getElementById('player-name').value.trim();
+  if(!playerName){
+    document.getElementById('player-name').classList.add('shake');
+    setTimeout(()=>document.getElementById('player-name').classList.remove('shake'),400);
+    return;
+  }
+  currentQ=0;attempts=0;score=0;correctFirst=0;correctSecond=0;incorrect=0;questionAnswered=false;
+  elapsedSeconds=0;
+  topicResults={};questionResults=[];dragState={matchAnswers:{},tfAnswers:{}};
+  currentQuestions=LEVEL_0_QUESTIONS;currentLevelId=0;QUESTIONS=LEVEL_0_QUESTIONS;
+  showScreen('screen-game');startTimer();renderQuestion();
+}
+function resetGame(){showScreen('screen-start')}
+
+function updateProgress(){
+  const pct=(currentQ/currentQuestions.length*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.querySelector('[data-template-id="game-progress-label"]').textContent='Câu '+(currentQ+1)+'/'+currentQuestions.length;
+}
+
+// ===== RENDER QUESTION =====
+function renderQuestion(){
+  questionAnswered=false;attempts=0;
+  document.getElementById('feedback-area').innerHTML='';
+  document.getElementById('next-btn').classList.add('hidden');
+  updateProgress();
+const q=currentQuestions[currentQ];
+  QUESTIONS=currentQuestions;
+  const area=document.getElementById('question-area');
+  const typeLabels={mcq:'Trắc nghiệm',drag_tf:'Kéo thả Đúng/Sai',drag_match:'Ghép cặp',fill_text:'Điền chữ',fill_number:'Điền số',slider:'Thanh trượt'};
+  const typeColors={mcq:'var(--pastel-lavender)',drag_tf:'var(--pastel-pink)',drag_match:'var(--pastel-mint)',fill_text:'var(--pastel-blue)',fill_number:'var(--pastel-blue)',slider:'var(--pastel-yellow)'};
+
+  let html='<div class="bg-white rounded-2xl p-6 shadow-sm fade-in">';
+  html+='<div class="flex items-center gap-3 mb-4 flex-wrap">';
+  html+='<span class="question-badge" style="background:'+typeColors[q.type]+'">'+typeLabels[q.type]+'</span>';
+  html+='<span class="question-badge" style="background:var(--pastel-yellow)">'+q.topic+'</span></div>';
+  var questionClass=(currentLevelId===3)?'level-3-text-large':'text-lg font-semibold';
+  html+='<p class="'+questionClass+' font-semibold mb-6" style="line-height:1.6">'+q.question+'</p>';
+
+  if(q.type==='mcq'){
+    html+='<div class="space-y-3" id="mcq-options">';
+    var optionClass=(currentLevelId===3)?'mcq-option level-3-option-large':'mcq-option';
+    q.options.forEach(o=>{
+      html+='<button class="'+optionClass+'" data-key="'+o.key+'" onclick="answerMCQ(\''+o.key+'\')">'+o.key+'. '+o.text+'</button>'
+    });
+    html+='</div>';
+  } else if(q.type==='drag_tf'){
+    var shuffled=q.statements.map((s,i)=>Object.assign({},s,{idx:i})).sort(()=>Math.random()-.5);
+    dragState.tfAnswers={};
+    html+='<div class="grid grid-cols-1 md:grid-cols-3 gap-4">';
+    html+='<div><p class="font-semibold text-sm mb-2" style="color:var(--text-mid)">Phát biểu:</p><div id="tf-source" class="space-y-2">';
+    shuffled.forEach(s=>{html+='<div class="drag-tf-item" draggable="true" data-tf-idx="'+s.idx+'" id="tf-item-'+s.idx+'">'+s.text+'</div>'});
+    html+='</div></div>';
+    html+='<div><p class="font-semibold text-sm mb-2 text-center" style="color:#16a34a">✓ Đúng</p><div class="drag-tf-zone" data-tf-zone="true" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="handleTFDrop(event,this)"></div></div>';
+    html+='<div><p class="font-semibold text-sm mb-2 text-center" style="color:#dc2626">✗ Sai</p><div class="drag-tf-zone" data-tf-zone="false" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="handleTFDrop(event,this)"></div></div></div>';
+    html+='<div class="text-center mt-4"><button class="btn-primary text-sm" style="padding:10px 24px" onclick="answerDragTF()">Kiểm tra</button></div>';
+  } else if(q.type==='drag_match'){
+    var shuffledP=[].concat(q.pairs).sort(()=>Math.random()-.5);
+    dragState.matchAnswers={};
+html+='<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
+    html+='<div class="space-y-3"><p class="font-semibold text-sm mb-2" style="color:var(--text-mid)">Kéo từ đây:</p><div id="drag-source" class="space-y-2">';
+    shuffledP.forEach((p,i)=>{html+='<div class="drag-item" draggable="true" data-drag-value="'+p.right+'" id="drag-'+i+'">'+p.right+'</div>'});
+    html+='</div></div><div class="space-y-3"><p class="font-semibold text-sm mb-2" style="color:var(--text-mid)">Thả vào đây:</p><div class="space-y-2">';
+    q.pairs.forEach(p=>{html+='<div class="flex items-center gap-3"><span class="font-semibold text-sm whitespace-nowrap">'+p.left+':</span><div class="drop-zone flex-1" data-drop-key="'+p.left+'" ondragover="event.preventDefault();this.classList.add(\'over\')" ondragleave="this.classList.remove(\'over\')" ondrop="handleDrop(event,this)"></div></div>'});
+    html+='</div></div></div>';
+    html+='<div class="text-center mt-4"><button class="btn-primary text-sm" style="padding:10px 24px" onclick="answerMatch()">Kiểm tra</button></div>'
+;
+    // Add flag to prevent duplicate answer display in feedback
+    q._skipAnswerBlockDisplay=true;
+  } else if(q.type==='fill_text'){
+    html+='<div class="flex flex-col gap-3 max-w-md mx-auto">';
+    html+='<input type="text" id="fill-input-1" placeholder="Từ thứ nhất..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();document.getElementById(\'fill-input-2\').focus()}">';
+    html+='<input type="text" id="fill-input-2" placeholder="Từ thứ hai..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();answerFillText()}">';
+    html+='<button class="btn-primary text-sm" style="padding:12px 24px" onclick="answerFillText()">Gửi</button></div>';
+  } else if(q.type==='fill_number'){
+    html+='<div class="flex flex-col gap-3 max-w-md mx-auto">';
+    html+='<div class="flex gap-3 items-center">';
+    html+='<input type="text" id="fill-num-input" placeholder="Nhập số..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();answerFillNumber()}">';
+    html+='<span class="font-semibold" id="fill-unit" style="min-width:50px">'+(q.unit||'')+'</span>';
+    html+='</div>';
+    html+='<button id="fill-num-submit" class="btn-primary text-sm" style="padding:12px 24px;align-self:flex-start" onclick="answerFillNumber()">Gửi</button>';
+    html+='</div>';
+  } else if(q.type==='slider'){
+    html+='<div class="max-w-md mx-auto text-center">';
+    html+='<div class="slider-value mb-2" id="slider-val">'+q.min+q.unit+'</div>';
+    html+='<div class="slider-container"><div class="slider-track"><div class="slider-fill" id="slider-fill" style="width:0%"></div></div>';
+    html+='<input type="range" id="slider-input" min="'+q.min+'" max="'+q.max+'" step="'+q.step+'" value="'+q.min+'" oninput="updateSlider(this.value)"></div>';
+html+='<div class="flex justify-between text-xs mt-1" style="color:var(--text-mid)"><span>'+q.min+q.unit+'</span><span>'+q.max+q.unit+'</span></div>';
+    html+='<button class="btn-primary text-sm mt-4" style="padding:10px 24px" onclick="answerSlider()">Xác nhận</button></div>';
+  } else if(q.type==='pendulum_drag'){
+    html+='<div class="max-w-md mx-auto text-center">';
+    html+='<p class="text-sm mb-4" style="color:var(--text-mid)">Kéo vật nặng đến vị trí có động năng lớn nhất và thế năng nhỏ nhất:</p>';
+    html+='<div id="pendulum-drag-container" class="relative inline-block" style="width:300px;height:280px;margin:20px auto;background:#f9fafb;border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.06)">';
+    html+='<svg width="300" height="280" style="position:absolute;top:0;left:0" id="pendulum-arc">';
+    html+='<path d="M 150 10 Q 80 80 50 150" stroke="#e2e8f0" stroke-width="2" fill="none"/>';
+    html+='<path d="M 150 10 Q 220 80 250 150" stroke="#e2e8f0" stroke-width="2" fill="none"/>';
+    html+='<path d="M 150 10 L 150 160" stroke="#cbd5e0" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    html+='<text x="140" y="30" font-size="12" fill="#666" font-weight="600">O</text>';
+    html+='<text x="35" y="160" font-size="12" fill="#666" font-weight="600">B</text>';
+    html+='<text x="255" y="160" font-size="12" fill="#666" font-weight="600">A</text>';
+    html+='<text x="150" y="110" font-size="12" fill="#999" font-weight="500" text-anchor="middle">M</text>';
+    html+='</svg>';
+    html+='<div id="pendulum-bob" draggable="true" style="position:absolute;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c83ff,#a78bfa);box-shadow:0 4px 12px rgba(124,131,255,0.4);cursor:grab;top:160px;left:132px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;z-index:10;user-select:none" data-position="O" ondragstart="startPendulumDrag(event)" ondragend="endPendulumDrag(event)" ontouchstart="startPendulumTouchDrag(event)" ontouchmove="movePendulumTouchDrag(event)" ontouchend="endPendulumTouchDrag(event)">●</div>';
+    html+='</div>';
+    html+='<div id="pendulum-label" class="mt-2 text-sm font-semibold" style="color:#7c83ff">Vị trí: O</div>';
+    html+='<button class="btn-primary text-sm mt-4" style="padding:10px 24px" onclick="answerPendulumDrag()">Xác nhận</button></div>';
+  } else if(q.type==='pendulum_click'){
+    html+='<div class="max-w-sm mx-auto text-center">';
+    html+='<p class="text-sm mb-3" style="color:var(--text-mid)">'+q.instruction+'</p>';
+    html+='<div class="relative inline-block">';
+    html+='<img src="'+q.imageSrc+'" class="w-full rounded-lg shadow-sm" alt="Con lắc đơn">';
+    html+='<div class="absolute inset-0 rounded-lg">';
+    q.points.forEach(p=>{
+var x=p.x,y=p.y,r=p.radius||45;
+      html+='<button class="absolute rounded-full hover:bg-blue-200 hover:bg-opacity-30 transition-all" style="left:calc('+x+'% - '+r+'px);top:calc('+y+'% - '+r+'px);width:'+r*2+'px;height:'+r*2+'px;border:none;cursor:pointer;background:transparent" onclick="answerPendulumClick(\''+p.label+'\')"></button>';
+    });
+    html+='</div></div>';
+    html+='</div>';
+  }
+  html+='</div>';
+  area.innerHTML=html;
+  if(q.type==='drag_match')setupDrag();
+  if(q.type==='drag_tf')setupTFDrag();
+  lucide.createIcons();
+}
+
+function updateSlider(val){var q=currentQuestions[currentQ];document.getElementById('slider-val').textContent=val+q.unit;var pct=((val-q.min)/(q.max-q.min))*100;document.getElementById('slider-fill').style.width=pct+'%'}
+
+// ===== DRAG & DROP (Match) =====
+var draggedEl=null;
+function setupDrag(){
+  document.querySelectorAll('#drag-source .drag-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{draggedEl=el;el.classList.add('dragging');e.dataTransfer.setData('text/plain',el.dataset.dragValue)});
+    el.addEventListener('dragend',()=>{if(draggedEl)draggedEl.classList.remove('dragging');draggedEl=null;document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('over'))});
+    el.addEventListener('touchstart',e=>{draggedEl=el;el.classList.add('dragging')},{passive:true});
+    el.addEventListener('touchend',e=>{if(!draggedEl)return;draggedEl.classList.remove('dragging');var touch=e.changedTouches[0];var target=document.elementFromPoint(touch.clientX,touch.clientY);var zone=target&&target.closest?target.closest('.drop-zone'):null;if(zone)dropIntoZone(zone,draggedEl.dataset.dragValue,draggedEl);draggedEl=null});
+  });
+}
+function handleDrop(e,zone){e.preventDefault();zone.classList.remove('over');var val=e.dataTransfer.getData('text/plain');dropIntoZone(zone,val,document.querySelector('.drag-item[data-drag-value="'+val+'"]'))}
+function dropIntoZone(zone,val,srcEl){
+  var key=zone.dataset.dropKey;
+  Object.entries(dragState.matchAnswers).forEach(entry=>{if(entry[1]===val){delete dragState.matchAnswers[entry[0]];var z=document.querySelector('.drop-zone[data-drop-key="'+entry[0]+'"]');if(z){z.innerHTML='';z.classList.remove('filled')}}});
+  dragState.matchAnswers[key]=val;zone.innerHTML='<span class="font-semibold text-sm">'+val+'</span>';zone.classList.add('filled');
+  if(srcEl)srcEl.style.opacity='.4';
+  document.querySelectorAll('.drag-item').forEach(d=>{if(!Object.values(dragState.matchAnswers).includes(d.dataset.dragValue))d.style.opacity='1'});
+}
+
+// ===== DRAG & DROP (TF) =====
+function setupTFDrag(){
+  document.querySelectorAll('.drag-tf-item').forEach(el=>{
+    el.addEventListener('dragstart',e=>{draggedEl=el;el.classList.add('dragging');e.dataTransfer.setData('text/plain',el.dataset.tfIdx)});
+el.addEventListener('dragend',()=>{if(draggedEl)draggedEl.classList.remove('dragging');draggedEl=null;document.querySelectorAll('.drag-tf-zone').forEach(z=>z.classList.remove('over'))});
+    el.addEventListener('touchstart',e=>{draggedEl=el;el.classList.add('dragging')},{passive:true});
+    el.addEventListener('touchend',e=>{if(!draggedEl)return;draggedEl.classList.remove('dragging');var touch=e.changedTouches[0];var target=document.elementFromPoint(touch.clientX,touch.clientY);var zone=target&&target.closest?target.closest('.drag-tf-zone'):null;if(zone)dropIntoTFZone(zone,draggedEl);draggedEl=null});
+  });
+}
+function handleTFDrop(e,zone){e.preventDefault();zone.classList.remove('over');var idx=e.dataTransfer.getData('text/plain');var srcEl=document.getElementById('tf-item-'+idx);if(srcEl)dropIntoTFZone(zone,srcEl)}
+function dropIntoTFZone(zone,srcEl){var idx=srcEl.dataset.tfIdx;if(dragState.tfAnswers[idx])delete dragState.tfAnswers[idx];srcEl.remove();zone.appendChild(srcEl);dragState.tfAnswers[idx]=zone.dataset.tfZone}
+
+// ===== ANSWER HANDLERS =====
+function showFeedback(correct,q){
+  var fb=document.getElementById('feedback-area');
+  if(correct){
+    soundCorrect();var pts=attempts===0?10:5;score+=pts;if(attempts===0)correctFirst++;else correctSecond++;
+    trackTopic(q.topic,true);questionResults.push({idx:currentQ,correct:true,group:normalizeGroup(q.knowledgeGroup)});
+    var feedbackHTML='<div class="explanation-box pop-in"><div style="margin-bottom:12px;font-weight:600;color:#16a34a;font-size:1.05rem">😊 Tuyệt vời! Em đã trả lời đúng.</div><div style="white-space:pre-wrap;line-height:1.6;'+((currentLevelId===3)?'font-size:20px':'')+'">'+q.explanation+'</div></div>';
+    fb.innerHTML=feedbackHTML;
+    questionAnswered=true;document.getElementById('next-btn').classList.remove('hidden');showEndButton();
+    triggerCorrectAnswerFireworks();
+  } else {
+    soundWrong();attempts++;
+    if(attempts===1){
+      var hintText=q.hint.startsWith('Em hãy')?q.hint:'Em hãy '+q.hint;
+      fb.innerHTML='<div class="hint-box shake"><div style="margin-bottom:8px;font-weight:600;color:#dc2626">❌ Em còn 1 cơ hội duy nhất.</div><div style="font-weight:600;color:#f59e0b">💡 Gợi ý: '+hintText+'</div></div>';
+    } else {
+      incorrect++;trackTopic(q.topic,false);questionResults.push({idx:currentQ,correct:false,group:normalizeGroup(q.knowledgeGroup)});
+      var answerBlock='';
+      if(q.type==='mcq'){
+        var correctOption=q.options.find(o=>o.key===q.answer);
+        answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">Đáp án đúng: '+q.answer+'. '+correctOption.text+'</div>';
+      } else if(q.type==='drag_tf'){
+        answerBlock='';
+      } else if(q.type==='drag_match'&&q._skipAnswerBlockDisplay){
+        answerBlock='';
+} else if(q.type==='drag_match'){
+        answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">Đáp án đúng:\n';
+        q.pairs.forEach(p=>{answerBlock+=(p.left+' → '+p.right+'\n')});
+        answerBlock+='</div>';
+      } else if(q.type==='fill_text'){
+        answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">Đáp án đúng: '+q.answer+' → '+q.answer2+'</div>';
+      } else if(q.type==='fill_number'){
+        answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">Đáp án đúng: '+q.accept[0]+(q.unit||'')+'</div>';
+      } else if(q.type==='slider'){
+        answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">Đáp án đúng: '+q.answer+(q.unit||'')+'</div>';
+      }
+      var feedbackHTML='<div class="answer-reveal shake"><div style="margin-bottom:12px;font-weight:600;color:#dc2626;font-size:1.05rem">😢 Em đã hết lượt trả lời.</div>';
+      if(answerBlock){
+        feedbackHTML+=answerBlock;
+      }
+      feedbackHTML+='<div style="white-space:pre-wrap;line-height:1.6;'+((currentLevelId===3)?'font-size:20px':'')+'">'+q.explanation+'</div></div>';
+      questionAnswered=true;document.getElementById('next-btn').classList.remove('hidden');showEndButton();
+    }
+  }
+}
+
+function answerMCQ(key){
+  if(questionAnswered)return;var q=QUESTIONS[currentQ];var correct=key===q.answer;
+  var clicked=document.querySelector('.mcq-option[data-key="'+key+'"]');
+  clicked.classList.add(correct?'selected-correct':'selected-wrong');
+  if(correct)document.querySelectorAll('.mcq-option').forEach(b=>b.classList.add('disabled'));
+  if(!correct&&attempts===0)setTimeout(()=>clicked.classList.remove('selected-wrong'),600);
+  showFeedback(correct,q);
+}
+function answerDragTF(){if(questionAnswered)return;var q=QUESTIONS[currentQ];if(Object.keys(dragState.tfAnswers).length<q.statements.length)return;var correct=q.statements.every((s,i)=>dragState.tfAnswers[String(i)]===(s.answer?'true':'false'));if(!correct&&attempts===0){dragState.tfAnswers={};var source=document.getElementById('tf-source');document.querySelectorAll('.drag-tf-item').forEach(el=>source.appendChild(el));document.querySelectorAll('.drag-tf-zone').forEach(z=>{z.innerHTML='';z.classList.remove('over','filled')})}showFeedback(correct,q)}
+function answerMatch(){if(questionAnswered)return;var q=QUESTIONS[currentQ];if(Object.keys(dragState.matchAnswers).length<q.pairs.length)return;var correct=q.pairs.every(p=>dragState.matchAnswers[p.left]===p.right);if(!correct&&attempts===0){dragState.matchAnswers={};document.querySelectorAll('.drop-zone').forEach(z=>{z.innerHTML='';z.classList.remove('filled')});document.querySelectorAll('.drag-item').forEach(d=>d.style.opacity='1')}if(correct||attempts>=1){var answerBlock='';if(q.type==='fill_number'){answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">'+q.accept[0]+(q.unit||'')+'</div>'}else if(q.type==='drag_match'&&!q._skipAnswerBlockDisplay){answerBlock='<div style="margin-bottom:12px;font-weight:600;color:#dc2626;white-space:pre-wrap">';q.pairs.forEach(p=>{answerBlock+=(p.left+' → '+p.right+'\n')});answerBlock+='</div>'}}showFeedback(correct,q)}
+function answerFillText(){if(questionAnswered)return;var q=QUESTIONS[currentQ];var v1=document.getElementById('fill-input-1').value.trim().toLowerCase(),v2=document.getElementById('fill-input-2').value.trim().toLowerCase();if(!v1||!v2)return;var correct=q.accept1.map(a=>a.toLowerCase()).includes(v1)&&q.accept2.map(a=>a.toLowerCase()).includes(v2);if(!correct&&attempts===0){attempts++;document.getElementById('fill-input-1').value='';document.getElementById('fill-input-2').value='';var hintText=q.hint.startsWith('Em hãy')?q.hint:'Em hãy '+q.hint;var fb=document.getElementById('feedback-area');fb.innerHTML='<div class="hint-box shake"><div style="margin-bottom:8px;font-weight:600;color:#dc2626">❌ Em còn 1 cơ hội duy nhất.</div><div style="font-weight:600;color:#f59e0b">💡 Gợi ý: '+hintText+'</div></div>';document.getElementById('fill-input-1').focus()}else{showFeedback(correct,q)}}
+function answerFillNumber(){
+  if(questionAnswered)return;
+  var q=QUESTIONS[currentQ];
+  var input=document.getElementById('fill-num-input').value.trim();
+  if(!input)return;
+  var correct=q.accept.includes(input);
+  if(!correct&&attempts===0){
+    // First wrong attempt: show hint, increment attempts, don't lock question
+    attempts++;
+    var hintText=q.hint.startsWith('💡 Gợi ý:')?q.hint:'💡 Gợi ý: '+q.hint;
+    var fb=document.getElementById('feedback-area');
+    fb.innerHTML='<div class="hint-box shake"><div style="margin-bottom:8px;font-weight:600;color:#dc2626">❌ Em còn 1 cơ hội duy nhất.</div><div style="font-weight:600;color:#f59e0b">'+hintText+'</div></div>';
+    return;
+  }
+  // Second attempt (or correct answer): show full feedback and lock question
+  showFeedback(correct,q);
+}
+function answerSlider(){if(questionAnswered)return;var q=QUESTIONS[currentQ];var val=parseInt(document.getElementById('slider-input').value);showFeedback(val===q.answer,q)}
+function answerPendulumDrag(){if(questionAnswered)return;var q=QUESTIONS[currentQ];var bob=document.getElementById('pendulum-bob');var pos=bob.dataset.position||'O';showFeedback(pos===q.answer,q)}
+var draggedBob=null;var dragOffsetX=0,dragOffsetY=0;
+function startPendulumDrag(e){draggedBob=document.getElementById('pendulum-bob');draggedBob.style.cursor='grabbing';var rect=draggedBob.getBoundingClientRect();var container=document.getElementById('pendulum-drag-container').getBoundingClientRect();dragOffsetX=e.clientX-rect.left;dragOffsetY=e.clientY-rect.top;document.addEventListener('mousemove',movePendulumDrag);document.addEventListener('mouseup',endPendulumDrag)}
+function movePendulumDrag(e){if(!draggedBob)return;var container=document.getElementById('pendulum-drag-container');var rect=container.getBoundingClientRect();var x=e.clientX-rect.left-dragOffsetX;var y=e.clientY-rect.top-dragOffsetY;var cw=container.offsetWidth,ch=container.offsetHeight;var cx=cw/2,cy=10;var dx=x+18-cx,dy=y+18-cy;var dist=Math.sqrt(dx*dx+dy*dy);var maxDist=150;if(dist>maxDist){var angle=Math.atan2(dy,dx);x=cx+Math.cos(angle)*maxDist-18;y=cy+Math.sin(angle)*maxDist-18}x=Math.max(0,Math.min(x,cw-36));y=Math.max(0,Math.min(y,ch-36));draggedBob.style.left=x+'px';draggedBob.style.top=y+'px';var bobCx=x+18,bobCy=y+18;var angle=Math.atan2(bobCx-cx,bobCy-cy)*180/Math.PI;var closestPos=snapPendulumPosition(bobCx,bobCy,cx,cy);draggedBob.dataset.position=closestPos;document.getElementById('pendulum-label').textContent='Vị trí: '+closestPos}
+function snapPendulumPosition(bx,by,cx,cy){var dx=bx-cx,dy=by-cy;var angle=Math.atan2(dx,dy)*180/Math.PI;if(angle<0)angle+=360;var pos;if(angle>=300||angle<60)pos='O';else if(angle>=60&&angle<120)pos='M';else if(angle>=120&&angle<180)pos='A';else if(angle>=180&&angle<240)pos='M';else pos='B';return pos}
+function endPendulumDrag(e){if(!draggedBob)return;draggedBob.style.cursor='grab';document.removeEventListener('mousemove',movePendulumDrag);document.removeEventListener('mouseup',endPendulumDrag);snapAndAlignBob()}
+var touchStartX=0,touchStartY=0;
+function startPendulumTouchDrag(e){draggedBob=document.getElementById('pendulum-bob');touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;var rect=draggedBob.getBoundingClientRect();dragOffsetX=touchStartX-rect.left;dragOffsetY=touchStartY-rect.top;document.addEventListener('touchmove',movePendulumTouchDrag,{passive:false});document.addEventListener('touchend',endPendulumTouchDrag)}
+function movePendulumTouchDrag(e){if(!draggedBob)return;e.preventDefault();var touch=e.touches[0];var container=document.getElementById('pendulum-drag-container');var rect=container.getBoundingClientRect();var x=touch.clientX-rect.left-dragOffsetX;var y=touch.clientY-rect.top-dragOffsetY;var cw=container.offsetWidth,ch=container.offsetHeight;var cx=cw/2,cy=10;var dx=x+18-cx,dy=y+18-cy;var dist=Math.sqrt(dx*dx+dy*dy);var maxDist=150;if(dist>maxDist){var angle=Math.atan2(dy,dx);x=cx+Math.cos(angle)*maxDist-18;y=cy+Math.sin(angle)*maxDist-18}x=Math.max(0,Math.min(x,cw-36));y=Math.max(0,Math.min(y,ch-36));draggedBob.style.left=x+'px';draggedBob.style.top=y+'px';var bobCx=x+18,bobCy=y+18;var closestPos=snapPendulumPosition(bobCx,bobCy,cx,cy);draggedBob.dataset.position=closestPos;document.getElementById('pendulum-label').textContent='Vị trí: '+closestPos}
+function endPendulumTouchDrag(e){if(!draggedBob)return;document.removeEventListener('touchmove',movePendulumTouchDrag);document.removeEventListener('touchend',endPendulumTouchDrag);snapAndAlignBob()}
+function snapAndAlignBob(){var bob=document.getElementById('pendulum-bob');var container=document.getElementById('pendulum-drag-container');var pos=bob.dataset.position||'O';var cw=container.offsetWidth,ch=container.offsetHeight;var cx=cw/2,cy=10;var targetX,targetY;if(pos==='O'){targetX=cx-18;targetY=160-18}else if(pos==='B'){targetX=50-18;targetY=150-18}else if(pos==='A'){targetX=250-18;targetY=150-18}else if(pos==='M'){targetX=150-18;targetY=110-18}bob.style.transition='left 0.3s ease, top 0.3s ease';bob.style.left=targetX+'px';bob.style.top=targetY+'px';setTimeout(()=>{bob.style.transition=''},300)}
+function answerPendulumClick(label){if(questionAnswered)return;var q=QUESTIONS[currentQ];var correct=label===q.answer;showFeedback(correct,q)}
+function trackTopic(topic,correct){if(!topicResults[topic])topicResults[topic]={correct:0,total:0};topicResults[topic].total++;if(correct)topicResults[topic].correct++}
+
+// ===== NEXT / END =====
+function nextQuestion(){
+  currentQ++;
+  if(currentQ>=currentQuestions.length){
+    endGame();
+    return;
+  }
+  renderQuestion();
+}
+
+function showEndButton(){
+  var nextBtn=document.getElementById('next-btn');
+  if(currentQ===currentQuestions.length-1){
+    nextBtn.textContent='🏁 Kết thúc →';
+  } else {
+    nextBtn.textContent='Câu tiếp theo →';
+  }
+}
+function playNextLevel(){if(!nextLevelQuestions)return;if(nextLevelQuestions===LEVEL_1_QUESTIONS){currentLevelId=1;currentQuestions=LEVEL_1_QUESTIONS;QUESTIONS=LEVEL_1_QUESTIONS}else if(nextLevelQuestions===LEVEL_2_QUESTIONS){currentLevelId=2;currentQuestions=LEVEL_2_QUESTIONS;QUESTIONS=LEVEL_2_QUESTIONS}else if(nextLevelQuestions===LEVEL_3_QUESTIONS){currentLevelId=3;currentQuestions=LEVEL_3_QUESTIONS;QUESTIONS=LEVEL_3_QUESTIONS}else{currentLevelId=0;currentQuestions=LEVEL_0_QUESTIONS;QUESTIONS=LEVEL_0_QUESTIONS}currentQ=0;attempts=0;score=0;correctFirst=0;correctSecond=0;incorrect=0;questionAnswered=false;topicResults={};questionResults=[];dragState={matchAnswers:{},tfAnswers:{}};showScreen('screen-game');startTimer();renderQuestion()}
+
+async function endGame(){
+  stopTimer();soundComplete();
+  var totalQ=currentQuestions.length,correctCount=correctFirst+correctSecond,wrongCount=incorrect;
+  var accuracy=Math.round((correctCount/totalQ)*100);
+  showScreen('screen-result');
+
+  var levelName=['Level 0','Level 1','Level 2','Level 3'][currentLevelId];
+  var resultTitleEl=document.querySelector('[data-template-id="result-title"]');
+  if(resultTitleEl)resultTitleEl.textContent='🎉 Em đã hoàn thành '+levelName+'!';
+  document.getElementById('stat-score-value').textContent=correctCount+'/'+totalQ;
+  document.getElementById('stat-accuracy-value').textContent=accuracy+'%';
+  document.getElementById('stat-breakdown-value').innerHTML='Đúng: '+correctCount+'<br>Sai: '+wrongCount+'<br>Đã bỏ qua: '+(totalQ-correctCount-wrongCount);
+  document.getElementById('result-emoji').textContent=correctCount>=8?'🏆':correctCount>=5?'👍':'💪';
+
+  var wrongResults=questionResults.filter(r=>!r.correct);
+  var strengths=generateStrengths(questionResults);
+  var weaknesses=generateWeaknesses(wrongResults);
+  var nextPath=generateNextLearningPath(correctCount);
+  document.getElementById('result-strengths-list').innerHTML=strengths.length>0?strengths.map(s=>'<li>'+s+'</li>').join(''):'<li>—</li>';
+  document.getElementById('result-weaknesses-list').innerHTML=weaknesses.map(w=>'<li>'+w+'</li>').join('');
+  document.querySelector('[data-template-id="result-next-path-label"]').textContent='🎯 '+nextPath.title;
+  document.getElementById('result-next-path-text').textContent=nextPath.message;
+
+  var btn=document.getElementById('result-play-next-level-btn');
+  if(correctCount<=2){nextLevelQuestions=null;btn.style.display='none'}
+  else if(correctCount<=4){nextLevelName='Level 1';nextLevelQuestions=LEVEL_1_QUESTIONS;btn.style.display='inline-block';btn.textContent='🚀 Bắt đầu Level 1'}
+  else if(correctCount<=7){nextLevelName='Level 2';nextLevelQuestions=LEVEL_2_QUESTIONS;btn.style.display='inline-block';btn.textContent='🚀 Bắt đầu Level 2'}
+else{nextLevelName='Level 3';nextLevelQuestions=LEVEL_3_QUESTIONS;btn.style.display='inline-block';btn.textContent='🚀 Bắt đầu Level 3'}
+
+  if(correctCount>=8)spawnConfetti();
+
+  // Build question_results string: JSON array of booleans for each question
+  var qrArr=[];
+  for(var qi=0;qi<totalQ;qi++){
+    var found=questionResults.find(r=>r.idx===qi);
+    qrArr.push(found?found.correct:false);
+  }
+
+  if(allRecords.length>=999)return;
+  await window.dataSdk.create({
+    player_name:playerName,score:score,total_questions:totalQ,
+    correct_first_try:correctFirst,correct_second_try:correctSecond,incorrect:incorrect,
+    completion_time_seconds:elapsedSeconds,
+    strengths:strengths.join(' | '),weaknesses:weaknesses.join(' | '),
+    submitted_at:new Date().toISOString(),
+    level_id:currentLevelId,
+    question_results:JSON.stringify(qrArr)
+  });
+}
+
+function generateStrengths(questionResults){
+  var correctCount=correctFirst+correctSecond;
+  
+  // Level 1 specific: display knowledge groups from correct answers only
+  if(currentLevelId===1){
+    // Get knowledge groups from correct answers only
+    var correctGroups=[];
+    LEVEL_1_QUESTIONS.forEach((q,idx)=>{
+      var found=questionResults.find(r=>r.idx===idx&&r.correct);
+      if(found){
+        var displayName=KNOWLEDGE_GROUPS[q.knowledgeGroup]||q.knowledgeGroup;
+        // Only add if not already in the list
+        if(!correctGroups.find(g=>g.name===displayName)){
+          correctGroups.push({name:displayName,idx:idx});
+        }
+      }
+    });
+    
+    if(correctGroups.length===0){
+      return['Em đã hoàn thành bài luyện tập. Kết quả này giúp em xác định những nội dung cần tiếp tục củng cố.'];
+    }
+    
+    // Limit to max 5 groups, prioritizing higher question indices
+    var sorted=correctGroups.sort((a,b)=>b.idx-a.idx);
+    var selected=sorted.slice(0,5);
+    var messages=['Em đã làm đúng các nhóm kiến thức sau:'];
+    selected.forEach(g=>{
+      messages.push('✓ '+g.name);
+    });
+    return messages;
+  }
+  
+  // Level 0 specific logic
+  if(currentLevelId!==0)return[];
+  
+  // 0-1 correct: generic message
+  if(correctCount<=1){
+    return['Em đã hoàn thành bài chẩn đoán đầu vào. Kết quả này giúp em xác định những nội dung nền tảng cần bắt đầu củng cố ở Level 1.'];
+  }
+  
+  // Map tags to display names and explanations (Level 0 only)
+  var tagMap={
+    'khai_niem_co_nang':'Khái niệm cơ năng',
+    'bao_toan_co_nang':'Bảo toàn cơ năng',
+    'chuyen_hoa_nang_luong':'Sự chuyển hóa năng lượng',
+    'van_dung_cong_thuc':'Vận dụng công thức'
+  };
+  
+  var tagExplanations={
+    'khai_niem_co_nang':'nhận biết cơ năng là tổng động năng và thế năng của vật',
+    'bao_toan_co_nang':'hiểu rằng khi bỏ qua lực cản không khí, cơ năng được bảo toàn',
+'chuyen_hoa_nang_luong':'phân biệt sự chuyển hóa giữa động năng và thế năng khi vật chuyển động',
+    'van_dung_cong_thuc':'áp dụng công thức tính cơ năng, động năng, thế năng trong bài toán cụ thể'
+  };
+  
+  // Get tags from correct answers
+  var correctTags=[];
+  LEVEL_0_QUESTIONS.forEach((q,idx)=>{
+    var found=questionResults.find(r=>r.idx===idx&&r.correct);
+    if(found){
+      correctTags.push({
+        idx:idx,
+        group:normalizeGroup(q.knowledgeGroup),
+        originalGroup:q.knowledgeGroup
+      });
+    }
+  });
+  
+  if(correctTags.length===0)return[];
+  
+  // Templates by correct_count
+  var messages=[];
+  
+  if(correctCount===2){
+    // 2 correct: 2 items, very light tone
+    var selected=correctTags.slice(-2);
+    selected.forEach(t=>{
+      var displayName=KNOWLEDGE_GROUPS[t.originalGroup]||KNOWLEDGE_GROUPS[t.group]||t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        messages.push(displayName+': Em đã bước đầu thể hiện được khả năng liên quan đến '+explanation+'.');
+      }
+    });
+  } else if(correctCount===3){
+    // 3 correct: max 2 items
+    var selected=correctTags.slice(-2);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+          messages.push(displayName+': Em đã bước đầu thể hiện được khả năng liên quan đến '+explanation+'.');
+        } else {
+          messages.push(displayName+': Em đã làm đúng một số nội dung gắn với '+explanation+'.');
+        }
+      }
+    });
+  } else if(correctCount===4){
+    // 4 correct: max 3 items, moderate tone
+    var selected=correctTags.slice(-3);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+          messages.push(displayName+': Em đã có nền tảng ban đầu ở nội dung '+explanation+'.');
+        } else if(i===1){
+          messages.push(displayName+': Em đã bước đầu xử lí được tình huống liên quan đến '+explanation+'.');
+        } else {
+          messages.push(displayName+': Em đã làm đúng một số nội dung quan trọng, đây là điểm tựa để tiếp tục củng cố ở Level 1.');
+        }
+      }
+    });
+  } else if(correctCount===5||correctCount===6){
+    // 5-6 correct: max 3 items
+    var selected=correctTags.slice(-3);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+messages.push(displayName+': Em đã làm đúng một số nội dung liên quan đến '+explanation+'.');
+        } else if(i===1){
+          messages.push(displayName+': Em đã có nền tảng ban đầu để tiếp tục rèn luyện nội dung '+explanation+'.');
+        } else {
+          messages.push(displayName+': Em đã bước đầu nhận diện được kiến thức trọng tâm của phần này.');
+        }
+      }
+    });
+  } else if(correctCount===7){
+    // 7 correct: max 3 items, moderate positive tone
+    var selected=correctTags.slice(-3);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+          messages.push(displayName+': Em đã bước đầu vận dụng được kiến thức liên quan đến '+explanation+'.');
+        } else if(i===1){
+          messages.push(displayName+': Em đã làm đúng một số nội dung có yêu cầu phân tích hoặc tính toán.');
+        } else {
+          messages.push(displayName+': Em đã có nền tảng ban đầu để xử lí các tình huống liên quan đến cơ năng, động năng và thế năng.');
+        }
+      }
+    });
+  } else if(correctCount===8){
+    // 8 correct: max 3 items, positive tone
+    var selected=correctTags.slice(-3);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+          messages.push(displayName+': Em đã làm tốt nội dung liên quan đến '+explanation+'.');
+        } else if(i===1){
+          messages.push(displayName+': Em đã nhận diện tốt cách xử lí kiến thức liên quan đến '+explanation+'.');
+        } else {
+          messages.push(displayName+': Em đã vận dụng khá tốt kiến thức để '+explanation+'.');
+        }
+      }
+    });
+  } else if(correctCount===9){
+    // 9 correct: max 4 items, strong positive tone
+    var selected=correctTags.slice(-4);
+    selected.forEach((t,i)=>{
+      var displayName = KNOWLEDGE_GROUPS[t.originalGroup] || KNOWLEDGE_GROUPS[t.group] || t.group;
+      var explanation=tagExplanations[t.group]||'';
+      if(explanation){
+        if(i===0){
+          messages.push(displayName+': Em đã làm tốt phần kiến thức liên quan đến '+explanation+'.');
+        } else if(i===1){
+          messages.push(displayName+': Em đã vận dụng khá tốt kiến thức để '+explanation+'.');
+        } else if(i===2){
+          messages.push(displayName+': Em đã nhận diện tốt nội dung cốt lõi trong '+explanation+'.');
+        } else {
+          messages.push(displayName+': Em đã xử lí khá chắc một số tình huống có yêu cầu phân tích hoặc tính toán liên quan đến '+explanation+'.');
+        }
+}
+    });
+  } else if(correctCount===10){
+    // 10 correct: fixed 3 messages
+    return[
+      'Em đã hoàn thành rất tốt Level 0 với toàn bộ câu trả lời đúng.',
+      'Em đã thể hiện khả năng nhận diện và vận dụng tốt các nội dung cốt lõi về cơ năng, động năng, thế năng và bảo toàn cơ năng.',
+      'Kết quả này cho thấy em đã sẵn sàng chuyển sang Level 3 – Thử thách nâng cao.'
+    ];
+  }
+  
+  return messages;
+}
+
+function generateWeaknesses(wrongResults){
+  var correctCount=correctFirst+correctSecond;
+  var incorrectCount=incorrect;
+  
+  // Special handling for Level 0 and Level 1
+  if(currentLevelId===0 || currentLevelId===1){
+    if(incorrectCount===0||incorrectCount===1){
+      if(currentLevelId===0){
+        return['Em gần như không có nội dung cần cải thiện nổi bật ở Level 0. Em có thể chuyển sang Level tiếp theo để tiếp tục thử thách với các tình huống vận dụng cao hơn.'];
+      } else {
+        return['Em gần như không có nội dung cần cải thiện nổi bật ở Level 1. Em có thể chuyển sang Level tiếp theo để tiếp tục thử thách với các tình huống vận dụng cao hơn.'];
+      }
+    }
+    
+    if(!wrongResults.length){
+      // No wrong answers but incorrectCount >= 2 (shouldn't happen, but fallback)
+      return['Hiện chưa phát hiện nội dung cần cải thiện rõ ràng từ bài làm này. Em có thể tiếp tục luyện thêm các bài toán tương tự.'];
+    }
+    
+    
+    // Map tag explanation
+    var tagExplanations={
+      'khai_niem_co_nang':'nhận biết cơ năng là tổng động năng và thế năng của vật',
+      'bao_toan_co_nang':'hiểu rằng khi bỏ qua lực cản không khí, cơ năng được bảo toàn',
+      'chuyen_hoa_nang_luong':'phân biệt sự chuyển hóa giữa động năng và thế năng khi vật chuyển động',
+      'van_dung_cong_thuc':'áp dụng công thức tính cơ năng, động năng, thế năng trong bài toán cụ thể'
+    };
+    
+    // Build list of wrong/skipped questions from Level 0 with their original knowledge group
+    var wrongQuestionsWithTags=[];
+    LEVEL_0_QUESTIONS.forEach((q,idx)=>{
+      var found=questionResults.find(r=>r.idx===idx&&!r.correct);
+      if(found){
+        wrongQuestionsWithTags.push({
+          idx:idx,
+          displayName:KNOWLEDGE_GROUPS[q.knowledgeGroup]||q.knowledgeGroup,
+          explanation:tagExplanations[normalizeGroup(q.knowledgeGroup)]||'',
+          originalGroup:q.knowledgeGroup
+        });
+      }
+    });
+    
+    // Determine output based on incorrectCount
+    if(incorrectCount===2){
+      // Select max 2 items, prioritize higher question indices
+      var selected=wrongQuestionsWithTags.slice(-2);
+      var messages=[];
+      selected.forEach((item,idx)=>{
+        if(item.explanation){
+          if(idx===0){
+            messages.push(item.displayName+': Em cần rà soát lại '+item.explanation+'.');
+} else {
+            messages.push(item.displayName+': Em nên luyện thêm nội dung liên quan đến '+item.explanation+'.');
+          }
+        }
+      });
+      return messages.length>0?messages:['Em cần luyện lại các nội dung từng bỏ lỡ ở Level 0.'];
+    } else if(incorrectCount===3||incorrectCount===4){
+      // Select max 3 items, prioritize higher question indices
+      var selected=wrongQuestionsWithTags.slice(-3);
+      var messages=[];
+      selected.forEach((item,idx)=>{
+        if(item.explanation){
+          if(idx===0){
+            messages.push(item.displayName+': Em cần củng cố thêm cách '+item.explanation+'.');
+          } else if(idx===1){
+            messages.push(item.displayName+': Em nên luyện lại các câu hỏi liên quan đến '+item.explanation+'.');
+          } else {
+            messages.push(item.displayName+': Em cần chú ý hơn khi xử lí nội dung gắn với '+item.explanation+'.');
+          }
+        }
+      });
+      return messages.length>0?messages:['Em cần luyện lại các nội dung từng bỏ lỡ ở Level 0.'];
+    } else if(incorrectCount>=5&&incorrectCount<=7){
+      // Select max 3 items, prioritize higher question indices
+      var selected=wrongQuestionsWithTags.slice(-3);
+      var messages=[];
+      selected.forEach((item,idx)=>{
+        if(item.explanation){
+          if(idx===0){
+            messages.push(item.displayName+': Em cần học lại và luyện thêm cách '+item.explanation+'.');
+          } else if(idx===1){
+            messages.push(item.displayName+': Em nên bắt đầu từ các ví dụ đơn giản để hiểu rõ hơn nội dung '+item.explanation+'.');
+          } else {
+            messages.push(item.displayName+': Em cần củng cố nền tảng trước khi chuyển sang các bài vận dụng liên quan đến '+item.explanation+'.');
+          }
+        }
+      });
+      return messages.length>0?messages:['Em cần luyện lại các nội dung từng bỏ lỡ ở Level 0.'];
+    } else if(incorrectCount>=8){
+      // Select max 3 items, prioritize higher question indices
+      var selected=wrongQuestionsWithTags.slice(-3);
+      var messages=[];
+      selected.forEach((item,idx)=>{
+        if(item.explanation){
+          if(idx===0){
+            messages.push(item.displayName+': Em cần bắt đầu củng cố lại nội dung nền tảng về '+item.explanation+'.');
+          } else if(idx===1){
+            messages.push(item.displayName+': Em nên học lại từng bước để nhận biết đúng nội dung '+item.explanation+'.');
+          } else {
+            messages.push(item.displayName+': Em cần luyện thêm các câu cơ bản trước khi làm các tình huống vận dụng về cơ năng, động năng và thế năng.');
+          }
+        }
+      });
+      return messages.length>0?messages:['Em cần luyện lại các nội dung từng bỏ lỡ ở Level 0.'];
+    }
+return ['Hiện chưa phát hiện nội dung cần cải thiện rõ ràng. Em có thể tiếp tục luyện thêm các bài toán tương tự.'];
+  }
+  
+  // For other levels, return empty
+  return [];
+}
+
+function generateNextLearningPath(c){
+  // Thứ tự ưu tiên riêng cho Level 0
+    var level0Priority={
+      0:{0:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang','van_dung_cong_thuc'],1:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang','van_dung_cong_thuc'],2:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang','van_dung_cong_thuc']},
+      3:{3:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],4:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']},
+      5:{5:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],6:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],7:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']},
+      8:{8:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],9:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']}
+    };
+    
+    // Thứ tự ưu tiên riêng cho Level 1
+    var level1Priority={
+      0:{0:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang'],1:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang'],2:['khai_niem_co_nang','chuyen_hoa_nang_luong','bao_toan_co_nang']},
+      3:{3:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],4:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']},
+      5:{5:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],6:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],7:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']},
+      8:{8:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc'],9:['bao_toan_co_nang','chuyen_hoa_nang_luong','khai_niem_co_nang','van_dung_cong_thuc']}
+    };
+    
+    // Level 0 specific messages
+    var level0Grouped={
+      0:{ // 0-2 correct
+        'khai_niem_co_nang':'Khái niệm cơ năng: Em cần củng cố lại cơ năng là tổng động năng và thế năng của vật.',
+        'chuyen_hoa_nang_luong':'Sự chuyển hóa năng lượng: Em cần nhận biết khi vật đi xuống thì động năng tăng, thế năng giảm; khi vật đi lên thì động năng giảm, thế năng tăng.',
+        'bao_toan_co_nang':'Bảo toàn cơ năng: Em cần chú ý rằng khi bỏ qua lực cản không khí, tổng động năng và thế năng của vật không đổi.',
+'van_dung_cong_thuc':'Vận dụng công thức: Em cần luyện thêm cách đổi đơn vị, xác định mốc thế năng và chọn công thức phù hợp.'
+      },
+      3:{ // 3-4 correct
+        'bao_toan_co_nang':'Bảo toàn cơ năng: Em cần rèn chắc hơn cách nhận biết điều kiện cơ năng được bảo toàn, đặc biệt khi đề bài cho bỏ qua lực cản không khí.',
+        'chuyen_hoa_nang_luong':'Sự chuyển hóa năng lượng: Em cần phân biệt rõ chiều chuyển hóa giữa động năng và thế năng trong các quá trình vật đi lên hoặc đi xuống.',
+        'khai_niem_co_nang':'Khái niệm cơ năng: Em cần rèn chắc hơn cách nhận diện cơ năng là tổng động năng và thế năng trong các tình huống khác nhau.',
+        'van_dung_cong_thuc':'Vận dụng công thức: Em cần luyện thêm cách đọc dữ kiện, đổi đơn vị và chọn công thức phù hợp trước khi tính toán.'
+      },
+      5:{ // 5-7 correct
+        'bao_toan_co_nang':'Bảo toàn cơ năng: Em cần rèn thêm cách lập quan hệ giữa động năng, thế năng và cơ năng trong các bài toán có nhiều trạng thái.',
+        'chuyen_hoa_nang_luong':'Sự chuyển hóa năng lượng: Em cần rèn thêm các tình huống phức tạp về chuyển hóa giữa động năng và thế năng.',
+        'khai_niem_co_nang':'Khái niệm cơ năng: Em cần rèn thêm các bài toán phân tích cơ năng trong các trạng thái khác nhau.',
+        'van_dung_cong_thuc':'Vận dụng công thức: Em cần chú ý hơn đến bước đổi đơn vị, xác định mốc thế năng và chọn đúng đại lượng cần tính.'
+      },
+      8:{ // 8-9 correct
+        'bao_toan_co_nang':'Em có thể rèn thêm các bài vận dụng bảo toàn cơ năng có nhiều trạng thái chuyển động hoặc xử lí tình huống phức tạp.',
+        'chuyen_hoa_nang_luong':'Em có thể rèn thêm các tình huống nâng cao về chuyển hóa năng lượng trong các quá trình phức tạp.',
+        'khai_niem_co_nang':'Em có thể rèn thêm các bài toán phân tích cơ năng trong các trạng thái chuyển động nâng cao.',
+        'van_dung_cong_thuc':'Em có thể rèn thêm các bài lập phương trình năng lượng hoặc so sánh nhiều trạng thái chuyển động.'
+      }
+    };
+
+}
+function generateNextLearningPath(c){
+  if(c<=2){
+    return{
+      title:'📚 Level 1 – Củng cố nền tảng từ đầu',
+      message:playerName+' nên bắt đầu với Level 1 để học lại các kiến thức nền tảng nhất về cơ năng, động năng, thế năng và công thức cơ bản. Đây là bước quan trọng để '+playerName+' hiểu chắc trước khi làm bài vận dụng.'
+    };
+  }
+  if(c<=4){
+    return{
+      title:'📚 Level 1 – Củng cố nền tảng có định hướng',
+      message:playerName+' đã có một số câu trả lời đúng, nhưng nền tảng vẫn cần được củng cố thêm. Hãy bắt đầu với Level 1 để ôn lại khái niệm, công thức và sự chuyển hóa giữa động năng, thế năng.'
+    };
+  }
+  if(c===5){
+    return{
+      title:'🚀 Level 2 – Rèn luyện cơ bản',
+message:playerName+' đã đạt ngưỡng cơ bản ban đầu. Hãy chuyển sang Level 2 để luyện thêm cách chọn công thức, đọc dữ kiện và giải các bài toán cơ năng đơn giản.'
+    };
+  }
+  if(c<=7){
+    return{
+      title:'🚀 Level 2 – Rèn luyện và vận dụng',
+      message:playerName+' đã có nền tảng tương đối tốt. Hãy tiếp tục với Level 2 để rèn khả năng vận dụng công thức, phân tích tình huống và giải thích sự chuyển hóa năng lượng.'
+    };
+  }
+  if(c===8){
+    return{
+      title:'🏆 Level 3 – Thử thách mở rộng có hỗ trợ',
+      message:playerName+' có kết quả tốt ở Level 0. Hãy chuyển sang Level 3 để thử sức với các câu hỏi khó hơn, nhưng vẫn cần chú ý các lỗi nhỏ về điều kiện bảo toàn cơ năng, mốc thế năng và đơn vị.'
+    };
+  }
+  return{
+    title:'🏆 Level 3 – Thử thách nâng cao',
+    message:playerName+' có kết quả rất tốt ở Level 0. Hãy chuyển sang Level 3 để rèn các bài toán nhiều bước, tình huống phức tạp và khả năng lập luận bằng định luật bảo toàn cơ năng.'
+  };
+}
+
+function spawnConfetti(){var emojis=['🎉','⭐','🌟','✨','🎊','🎈','🏆','💫'];var container=document.createElement('div');container.className='fireworks-container';document.body.appendChild(container);for(var i=0;i<50;i++){(function(j){setTimeout(function(){var firework=document.createElement('div');firework.className='firework';firework.textContent=emojis[Math.floor(Math.random()*emojis.length)];var x=Math.random()*100;var y=Math.random()*100;firework.style.left=x+'%';firework.style.top=y+'%';firework.style.animationDelay=(Math.random()*0.3)+'s';container.appendChild(firework);setTimeout(()=>firework.remove(),1100)},j*30)})(i)}setTimeout(()=>container.remove(),2000)}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard(){
+  var sorted=[].concat(allRecords).sort((a,b)=>b.score-a.score||a.completion_time_seconds-b.completion_time_seconds);
+  var list=document.getElementById('lb-list'),empty=document.getElementById('lb-empty');
+  if(!sorted.length){list.innerHTML='';empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');
+  var top10=sorted.slice(0,10),fragment=document.createDocumentFragment();
+  top10.forEach((r,i)=>{
+    var el=document.createElement('div');el.className='lb-row flex items-center gap-4 bg-white rounded-xl p-4 shadow-sm';
+    var mins=Math.floor(r.completion_time_seconds/60),secs=r.completion_time_seconds%60;
+el.innerHTML='<div class="lb-rank w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm" style="background:var(--pastel-lavender);color:#fff">'+(i+1)+'</div><div class="flex-1 min-w-0"><p class="font-bold truncate">'+(r.player_name||'Ẩn danh')+'</p><p class="text-xs" style="color:var(--text-mid)">'+String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0')+'</p></div><div class="text-right"><span class="font-extrabold text-lg" style="color:#7c83ff">'+r.score+'</span><span class="text-xs block" style="color:var(--text-mid)">điểm</span></div>';
+    fragment.appendChild(el);
+  });
+  list.innerHTML='';list.appendChild(fragment);
+}
+
+// ===== PERFORMANCE DASHBOARD =====
+function showPerfAuth(){
+  if(perfUnlocked){document.getElementById('perf-dashboard').classList.toggle('hidden');return}
+  document.getElementById('perf-auth').classList.toggle('hidden');
+  document.getElementById('perf-pw').focus();
+}
+function checkPerfPassword(){
+  var pw=document.getElementById('perf-pw').value;
+  if(pw==='12345'){
+    perfUnlocked=true;
+    document.getElementById('perf-auth').classList.add('hidden');
+    document.getElementById('perf-dashboard').classList.remove('hidden');
+    renderPerfDashboard();
+  } else {
+    document.getElementById('perf-pw-error').classList.remove('hidden');
+    document.getElementById('perf-pw').value='';
+    setTimeout(()=>document.getElementById('perf-pw-error').classList.add('hidden'),3000);
+  }
+}
+
+function renderPerfDashboard() {
+  var container = document.getElementById('perf-levels-container');
+  var html = '';
+  
+  for (var lvl = 0; lvl < 4; lvl++) {
+    // 1. Sửa lỗi mất dữ liệu: Các bản ghi cũ không có level_id sẽ được đưa mặc định vào Level 0
+    var levelRecords = allRecords.filter(r => {
+        var id = r.level_id !== undefined ? parseInt(r.level_id) : 0;
+        return id === lvl;
+    });
+    
+    // 2. Sửa lỗi hardcode: Số lượng câu hỏi tự động thay đổi theo dữ liệu gốc của từng Level
+    var qCount = ALL_LEVELS[lvl].length;
+
+    html += '<div class="level-card"><div class="level-card-header" onclick="toggleLevelCard(this)" style="background:linear-gradient(135deg,'+['#e0f2fe','#ede9fe','#fce7f3','#fef3c7'][lvl]+',#fff)">';
+    html += '<span>' + LEVEL_NAMES[lvl] + '</span><span class="text-sm" style="color:var(--text-mid)">' + levelRecords.length + ' lượt chơi <i data-lucide="chevron-down" style="width:16px;height:16px;display:inline"></i></span></div>';
+    html += '<div class="level-card-body">';
+    
+    if (!levelRecords.length) {
+      html += '<p class="text-sm py-4" style="color:var(--text-mid)">Chưa có dữ liệu.</p>';
+    } else {
+      html += '<div class="space-y-3 pt-2">';
+      for (var qi = 0; qi < qCount; qi++) {
+        var correctCount = 0, totalCount = 0;
+        
+        levelRecords.forEach(r => {
+          try {
+            if (r.question_results) {
+              // 3. Xử lý an toàn khi parse chuỗi thống kê từng câu hỏi
+              var arr = typeof r.question_results === 'string' ? JSON.parse(r.question_results) : r.question_results;
+              if (Array.isArray(arr) && arr.length > qi) {
+                totalCount++;
+                if (arr[qi]) correctCount++;
+              }
+            }
+          } catch(e) { console.warn("Lỗi đọc dữ liệu câu hỏi:", e); }
+        });
+        
+        // 4. Sửa logic tính % sai (khi không có ai làm, pctWrong sẽ an toàn ở mức 0)
+        var pctCorrect = totalCount ? Math.round((correctCount / totalCount) * 100) : 0;
+        var pctWrong = totalCount ? (100 - pctCorrect) : 0;
+        
+        // Mở rộng độ rộng w-16 cho chữ "Câu 10" không bị rớt dòng trên điện thoại
+        html += '<div class="flex items-center gap-3"><span class="text-sm font-semibold w-16 shrink-0">Câu ' + (qi + 1) + '</span>';
+        html += '<div class="perf-bar flex-1">';
+        
+        if (pctCorrect > 0) html += '<div class="perf-bar-correct" style="width:' + pctCorrect + '%">' + pctCorrect + '%</div>';
+        if (pctWrong > 0 && totalCount > 0) html += '<div class="perf-bar-wrong" style="width:' + pctWrong + '%">' + pctWrong + '%</div>';
+        if (!totalCount) html += '<div class="flex-1 flex items-center justify-center text-xs" style="color:var(--text-mid)">Chưa có chi tiết</div>';
+        
+        html += '</div></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  
+  container.innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function toggleLevelCard(header){
+  var body=header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function triggerCorrectAnswerFireworks(){var emojis=['🎉','⭐','🌟','✨','🎊','🎈','🏆','💫','🎆','🌠'];var container=document.createElement('div');container.className='fireworks-container';document.body.appendChild(container);for(var i=0;i<60;i++){(function(j){setTimeout(function(){var firework=document.createElement('div');firework.className='firework';firework.textContent=emojis[Math.floor(Math.random()*emojis.length)];var x=Math.random()*100;var y=Math.random()*100;firework.style.left=x+'%';firework.style.top=y+'%';firework.style.animationDelay=(Math.random()*0.4)+'s';firework.style.fontSize=(['1.5rem','2rem','2.5rem','3rem'][Math.floor(Math.random()*4)]);container.appendChild(firework);setTimeout(()=>firework.remove(),1200)},j*20)})(i)}setTimeout(()=>container.remove(),2000)}
+
+document.addEventListener('DOMContentLoaded',function(){lucide.createIcons()});
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a00128a38b4104f6',t:'MTc3OTUwODg3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
